@@ -1,5 +1,12 @@
 # Financial Reports CLI
 
+[![Version](https://img.shields.io/github/package-json/v/jan-ru/cap_oclif_keycloack?style=flat-square)](https://github.com/jan-ru/cap_oclif_keycloack/releases)
+[![CI/CD Pipeline](https://img.shields.io/github/actions/workflow/status/jan-ru/cap_oclif_keycloack/ci.yml?branch=main&style=flat-square&label=build)](https://github.com/jan-ru/cap_oclif_keycloack/actions/workflows/ci.yml)
+[![Codecov](https://img.shields.io/codecov/c/github/jan-ru/cap_oclif_keycloack?style=flat-square)](https://codecov.io/gh/jan-ru/cap_oclif_keycloack)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
+[![Node.js](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen?style=flat-square&logo=node.js)](https://nodejs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
+
 A TypeScript-based command-line tool and HTTP API for retrieving financial reports from OData v4 datasources using the SAP Cloud SDK. This tool provides both CLI and API interfaces for querying CAP (Cloud Application Programming) services to generate financial reports based on configurable specifications.
 
 ## Features
