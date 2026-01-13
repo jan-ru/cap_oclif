@@ -1,7 +1,7 @@
 {
   "name": "financial-reports-cli",
   "description": "A new CLI generated with oclif",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "author": "jan-ru",
   "bin": {
     "financial-reports-cli": "./bin/run.js"
@@ -16,8 +16,11 @@
     "@sap-cloud-sdk/util": "^4.3.1",
     "cors": "^2.8.5",
     "express": "^5.2.1",
+    "express-rate-limit": "^8.2.1",
     "helmet": "^8.1.0",
     "js-yaml": "^4.1.1",
+    "jsonwebtoken": "^9.0.3",
+    "jwks-client": "^2.1.0",
     "morgan": "^1.10.1"
   },
   "devDependencies": {
@@ -26,6 +29,7 @@
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/js-yaml": "^4.0.9",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/morgan": "^1.9.10",
     "@types/node": "^20.19.28",
     "@types/supertest": "^6.0.3",

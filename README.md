@@ -510,6 +510,15 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ## Changelog
 
+### v0.1.5 (2025-01-13)
+
+- **🔐 Enhanced Authentication Error Handling**: Implemented comprehensive authentication error handler
+- **🛡️ Secure Error Responses**: Generic error messages to clients while detailed logging internally
+- **🔍 Correlation ID Support**: Enhanced request tracing with automatic correlation ID generation
+- **⚠️ Security Alert Integration**: Automatic detection of suspicious authentication patterns
+- **📊 Improved Error Classification**: Specific error types for better debugging and monitoring
+- **✅ Updated Test Coverage**: All authentication tests updated for new error handling behavior
+
 ### v0.1.4 (2025-01-13)
 
 - **🚀 HTTP API Mode**: Added comprehensive REST API server with Express.js
