@@ -9,7 +9,7 @@ import { ReportService } from './services/report-service.js';
  */
 export class DIContainer {
   private static instance: DIContainer;
-// Service instances
+  // Service instances
   private _configurationService?: ConfigurationService;
   private _logger?: CLILogger;
   private _outputFormatter?: OutputFormatter;
@@ -109,10 +109,10 @@ export class DIContainer {
    * Reset all services (useful for testing)
    */
   reset(): void {
-    this._configurationService = undefined as any;
-    this._outputFormatter = undefined as any;
-    this._reportService = undefined as any;
-    this._logger = undefined as any;
+    this._configurationService = undefined;
+    this._outputFormatter = undefined;
+    this._reportService = undefined;
+    this._logger = undefined;
   }
 }
 

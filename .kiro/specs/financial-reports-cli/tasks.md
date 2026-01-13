@@ -60,7 +60,7 @@ This implementation plan breaks down the Financial Reports CLI into discrete cod
     - Handle entity-specific query parameters
     - _Requirements: 3.1, 3.2, 3.3, 3.4_
 
-  - [ ]\* 4.4 Write property test for report query generation
+  - [x] 4.4 Write property test for report query generation
     - **Property 5: Report Query Generation**
     - **Validates: Requirements 3.1, 3.2, 3.3, 3.4**
 
@@ -74,7 +74,7 @@ This implementation plan breaks down the Financial Reports CLI into discrete cod
     - Create human-readable table formatting for console output
     - _Requirements: 6.1, 6.2, 6.3, 6.4_
 
-  - [ ]\* 6.2 Write property test for structured output generation
+  - [x] 6.2 Write property test for structured output generation
     - **Property 6: Structured Output Generation**
     - **Validates: Requirements 3.5, 6.4**
 
@@ -98,11 +98,11 @@ This implementation plan breaks down the Financial Reports CLI into discrete cod
     - Add comprehensive error handling and logging
     - _Requirements: 3.5, 5.4_
 
-  - [ ]\* 7.2 Write property test for empty result handling
+  - [x] 7.2 Write property test for empty result handling
     - **Property 10: Empty Result Handling**
     - **Validates: Requirements 5.4**
 
-  - [ ]\* 7.3 Write integration tests for ReportService
+  - [x] 7.3 Write integration tests for ReportService
     - Test complete workflow with mock OData services
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
 
@@ -113,7 +113,7 @@ This implementation plan breaks down the Financial Reports CLI into discrete cod
     - Configure output format and verbose options
     - _Requirements: 4.1, 4.2, 4.5_
 
-  - [ ]\* 8.2 Write property test for CLI argument processing
+  - [x] 8.2 Write property test for CLI argument processing
     - **Property 7: CLI Argument Processing**
     - **Validates: Requirements 4.1**
 
@@ -122,7 +122,7 @@ This implementation plan breaks down the Financial Reports CLI into discrete cod
     - Return appropriate non-zero codes for different error types
     - _Requirements: 4.3, 4.4_
 
-  - [ ]\* 8.4 Write property test for exit code consistency
+  - [x] 8.4 Write property test for exit code consistency
     - **Property 8: Exit Code Consistency**
     - **Validates: Requirements 4.3, 4.4**
 
@@ -131,11 +131,11 @@ This implementation plan breaks down the Financial Reports CLI into discrete cod
     - Create comprehensive help text and usage examples
     - _Requirements: 4.2, 4.5_
 
-  - [ ]\* 8.6 Write property test for verbose output behavior
+  - [x] 8.6 Write property test for verbose output behavior
     - **Property 9: Verbose Output Behavior**
     - **Validates: Requirements 4.5**
 
-  - [ ]\* 8.7 Write unit test for help documentation
+  - [x] 8.7 Write unit test for help documentation
     - Verify help text is available and comprehensive
     - _Requirements: 4.2_
 
@@ -146,7 +146,7 @@ This implementation plan breaks down the Financial Reports CLI into discrete cod
     - Add global error handling and logging
     - _Requirements: All requirements integration_
 
-  - [ ]\* 9.2 Write end-to-end integration tests
+  - [x] 9.2 Write end-to-end integration tests
     - Test complete workflows from CLI input to output generation
     - Test error scenarios and edge cases
     - _Requirements: All requirements_

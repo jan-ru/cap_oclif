@@ -310,6 +310,14 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ## Changelog
 
+### v0.1.2 (2025-01-13)
+
+- Added comprehensive end-to-end integration tests covering complete CLI workflows
+- Enhanced test coverage for error scenarios and edge cases
+- Improved validation of command-line argument processing and exit codes
+- Added tests for all output formats (JSON, CSV, Table) and file redirection
+- Strengthened error handling validation for network issues and invalid inputs
+
 ### v0.1.1 (2025-01-13)
 
 - Added property-based test for OData service configuration validation

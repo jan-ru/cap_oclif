@@ -1,4 +1,4 @@
-import { promises as fs } from 'node:fs';
+import { constants, promises as fs } from 'node:fs';
 import { dirname } from 'node:path';
 
 import { FinancialData, OutputFormat, ReportMetadata } from '../types/index.js';
@@ -13,7 +13,7 @@ export class OutputFormatter {
   async checkWriteAccess(filePath: string): Promise<boolean> {
     try {
       const dir = dirname(filePath);
-      await fs.access(dir, fs.constants.W_OK);
+      await fs.access(dir, constants.W_OK);
       return true;
     } catch {
       // Try to create the directory if it doesn't exist
@@ -65,8 +65,15 @@ export class OutputFormatter {
     const lines: string[] = [];
 
     // Add metadata header
-    lines.push('# Financial Report CSV Export');
-    lines.push(`# Generated At: ${metadata.generatedAt.toISOString()}`, `# Report Type: ${metadata.reportType}`, `# Entity: ${metadata.entity}`, `# Period: ${metadata.period}`, `# Record Count: ${metadata.recordCount}`, `# Execution Time: ${metadata.executionTime}ms`, '', 
+    lines.push(
+      '# Financial Report CSV Export',
+      `# Generated At: ${metadata.generatedAt.toISOString()}`,
+      `# Report Type: ${metadata.reportType}`,
+      `# Entity: ${metadata.entity}`,
+      `# Period: ${metadata.period}`,
+      `# Record Count: ${metadata.recordCount}`,
+      `# Execution Time: ${metadata.executionTime}ms`,
+      '',
       'Entity,Period,Report Type,Account,Description,Amount,Currency,Category'
     );
 
@@ -116,13 +123,17 @@ export class OutputFormatter {
     const lines: string[] = [];
 
     // Header with metadata
-    lines.push('═'.repeat(80));
-    lines.push(`  FINANCIAL REPORT - ${metadata.reportType.toUpperCase()}`);
-    lines.push('═'.repeat(80), `Entity: ${metadata.entity}`, `Period: ${metadata.period}`);
-    lines.push(`Generated: ${metadata.generatedAt.toISOString()}`, 
-      `Records: ${metadata.recordCount} | Execution Time: ${metadata.executionTime}ms`
+    lines.push(
+      '═'.repeat(80),
+      `  FINANCIAL REPORT - ${metadata.reportType.toUpperCase()}`,
+      '═'.repeat(80),
+      `Entity: ${metadata.entity}`,
+      `Period: ${metadata.period}`,
+      `Generated: ${metadata.generatedAt.toISOString()}`,
+      `Records: ${metadata.recordCount} | Execution Time: ${metadata.executionTime}ms`,
+      '═'.repeat(80),
+      ''
     );
-    lines.push('═'.repeat(80), '');
 
     if (data.length === 0) {
       lines.push('No data found for the specified criteria.', '');
@@ -139,16 +150,15 @@ export class OutputFormatter {
     ];
     const colWidths = [15, 30, 15, 10, 15];
 
-    lines.push(this.formatTableRow(headers, colWidths));
-    lines.push('─'.repeat(80));
+    lines.push(this.formatTableRow(headers, colWidths), '─'.repeat(80));
 
     // Data rows
     for (const report of data) {
       if (report.lineItems.length > 0) {
         lines.push(
-          `\n${report.reportType} - ${report.entity} (${report.period}):`
+          `\n${report.reportType} - ${report.entity} (${report.period}):`,
+          '─'.repeat(80)
         );
-        lines.push('─'.repeat(80));
 
         for (const lineItem of report.lineItems) {
           const row = [
@@ -163,8 +173,7 @@ export class OutputFormatter {
       }
     }
 
-    lines.push('');
-    lines.push('═'.repeat(80));
+    lines.push('', '═'.repeat(80));
 
     return lines.join('\n');
   }
@@ -227,8 +236,17 @@ export class OutputFormatter {
    */
   private formatEmptyCsv(metadata: ReportMetadata): string {
     const lines: string[] = [];
-    lines.push('# Financial Report CSV Export');
-    lines.push(`# Generated At: ${metadata.generatedAt.toISOString()}`, `# Report Type: ${metadata.reportType}`, `# Entity: ${metadata.entity}`, `# Period: ${metadata.period}`, `# Record Count: 0`, `# Execution Time: ${metadata.executionTime}ms`, '', '# No data found for the specified criteria');
+    lines.push(
+      '# Financial Report CSV Export',
+      `# Generated At: ${metadata.generatedAt.toISOString()}`,
+      `# Report Type: ${metadata.reportType}`,
+      `# Entity: ${metadata.entity}`,
+      `# Period: ${metadata.period}`,
+      `# Record Count: ${metadata.recordCount}`,
+      `# Execution Time: ${metadata.executionTime}ms`,
+      '',
+      '# No data found for the specified criteria'
+    );
     return lines.join('\n');
   }
 

@@ -53,6 +53,7 @@ temp/
 
 # Test artifacts
 test-temp/
+test/temp*/
 *.test.js
 *.spec.js
 

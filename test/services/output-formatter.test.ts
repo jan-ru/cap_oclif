@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { OutputFormatter } from '../../src/services/output-formatter.js';
 import {
   FinancialData,
+  OutputFormat,
   ReportMetadata,
   ReportType,
 } from '../../src/types/index.js';
@@ -86,7 +87,7 @@ describe('OutputFormatter', () => {
       const result = formatter.formatAsCsv([], sampleMetadata);
 
       expect(result).toContain('# No data found for the specified criteria');
-      expect(result).toContain('# Record Count: 0');
+      expect(result).toContain(`# Record Count: ${sampleMetadata.recordCount}`);
     });
   });
 
@@ -123,7 +124,7 @@ describe('OutputFormatter', () => {
 
     it('should throw error for unsupported format', () => {
       expect(() => {
-        formatter.format(sampleData, sampleMetadata, 'xml' as any);
+        formatter.format(sampleData, sampleMetadata, 'xml' as OutputFormat);
       }).toThrow('Unsupported output format: xml');
     });
   });

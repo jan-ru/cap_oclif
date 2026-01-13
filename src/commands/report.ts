@@ -1,4 +1,4 @@
-import { Args, Command, Flags } from '@oclif/core';
+import { Args, Command, Config, Flags } from '@oclif/core';
 import { existsSync } from 'node:fs';
 
 import { CLILogger } from '../cli.js';
@@ -24,7 +24,7 @@ export default class ReportCommand extends Command {
       required: true,
     }),
   };
-static override description = `Generate financial reports from OData v4 datasources using report specifications
+  static override description = `Generate financial reports from OData v4 datasources using report specifications
 
 OVERVIEW
   The Financial Reports CLI connects to OData v4 services (such as CAP services) to retrieve
@@ -71,7 +71,7 @@ EXIT CODES
   • 3 - Validation or input error
   • 4 - Network or connection error
   • 5 - Permission or access error`;
-static override examples = [
+  static override examples = [
     `<%= config.bin %> <%= command.id %> ./report-spec.json
 Generate a financial report using the default JSON output format`,
 
@@ -100,7 +100,7 @@ Generate a cash flow report, save as JSON file with verbose output`,
   }
 }`,
   ];
-static override flags = {
+  static override flags = {
     destination: Flags.string({
       char: 'd',
       description:
@@ -120,10 +120,10 @@ static override flags = {
       description: 'Enable verbose output for debugging and detailed logging',
     }),
   };
-private logger: CLILogger;
+  private logger: CLILogger;
   private reportService: ReportService;
 
-  constructor(argv: string[], config: any, reportService?: ReportService) {
+  constructor(argv: string[], config: Config, reportService?: ReportService) {
     super(argv, config);
     this.reportService = reportService || getReportService();
     this.logger = getLogger();
@@ -179,9 +179,7 @@ private logger: CLILogger;
       );
 
       // Handle empty results (Requirement 5.4)
-      if (
-        result.data.every(report => report.lineItems.length === 0)
-      ) {
+      if (result.data.every(report => report.lineItems.length === 0)) {
         if (typedFlags.verbose) {
           this.logger.warn(
             'No matching records found for the specified criteria'
@@ -252,7 +250,6 @@ private logger: CLILogger;
       }
 
       // Exit with success code (Requirement 4.3)
-      
     } catch (error) {
       await this.handleError(error, flags.verbose || false);
     }
@@ -499,14 +496,14 @@ private logger: CLILogger;
 
       try {
         // Check if the directory exists (not the file itself)
-        const path = await import('node:path');
-        const dirname = path.dirname(flags.destination);
-        if (!existsSync(dirname)) {
-          throw new Error(`Destination directory does not exist: ${dirname}`);
+        const { dirname } = await import('node:path');
+        const dirPath = dirname(flags.destination);
+        if (!existsSync(dirPath)) {
+          throw new Error(`Destination directory does not exist: ${dirPath}`);
         }
 
         if (flags.verbose) {
-          this.logger.success(`Destination directory exists: ${dirname}`);
+          this.logger.success(`Destination directory exists: ${dirPath}`);
         }
       } catch {
         throw new Error(`Invalid destination path: ${flags.destination}`);
