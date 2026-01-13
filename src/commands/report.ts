@@ -19,7 +19,8 @@ import {
 export default class ReportCommand extends Command {
   static override args = {
     specFile: Args.string({
-      description: 'Path to the report specification file (JSON format)',
+      description:
+        'Path to the report specification file (JSON, YAML, or YML format)',
       name: 'specFile',
       required: true,
     }),
@@ -28,11 +29,17 @@ export default class ReportCommand extends Command {
 
 OVERVIEW
   The Financial Reports CLI connects to OData v4 services (such as CAP services) to retrieve
-  and format financial data based on JSON specification files. It supports multiple report
+  and format financial data based on specification files. It supports multiple report
   types including Balance Sheets, Income Statements, and Cash Flow reports.
 
+SUPPORTED FILE FORMATS
+  • JSON (.json) - Traditional JSON format
+  • YAML (.yaml, .yml) - Human-readable YAML format with comment support
+
 REPORT SPECIFICATION FORMAT
-  The specification file should be a JSON file with the following structure:
+  The specification file can be in JSON or YAML format with the following structure:
+  
+  JSON Example:
   {
     "entity": "CompanyEntity",
     "reportType": "BalanceSheet|IncomeStatement|Cashflow", 
@@ -54,6 +61,26 @@ REPORT SPECIFICATION FORMAT
     ]
   }
 
+  YAML Example:
+  # Company financial report specification
+  entity: CompanyEntity
+  reportType: BalanceSheet  # BalanceSheet, IncomeStatement, or Cashflow
+  period: "2025-01"         # YYYY-MM format
+  
+  # OData service configuration
+  destination:
+    url: http://your-odata-service/odata/v4/financial
+    authentication:
+      type: basic
+      username: user
+      password: pass
+  
+  # Optional filters
+  filters:
+    - field: fieldName
+      operator: eq           # eq, ne, gt, lt, ge, le
+      value: filterValue
+
 SUPPORTED REPORT TYPES
   • BalanceSheet - Assets, liabilities, and equity information
   • IncomeStatement - Revenue, expenses, and net income data  
@@ -73,24 +100,27 @@ EXIT CODES
   • 5 - Permission or access error`;
   static override examples = [
     `<%= config.bin %> <%= command.id %> ./report-spec.json
-Generate a financial report using the default JSON output format`,
+Generate a financial report using a JSON specification file`,
 
-    `<%= config.bin %> <%= command.id %> ./report-spec.json --output table --verbose
-Generate a report with table output format and verbose logging`,
+    `<%= config.bin %> <%= command.id %> ./report-spec.yaml
+Generate a financial report using a YAML specification file`,
 
-    `<%= config.bin %> <%= command.id %> ./report-spec.json --output csv --destination ./output.csv
-Generate a CSV report and save it to a file`,
+    `<%= config.bin %> <%= command.id %> ./report-spec.yml --output table --verbose
+Generate a report with table output format and verbose logging using YAML`,
 
-    `<%= config.bin %> <%= command.id %> ./balance-sheet-spec.json --verbose
-Generate a balance sheet report with detailed logging`,
+    `<%= config.bin %> <%= command.id %> ./report-spec.yaml --output csv --destination ./output.csv
+Generate a CSV report from YAML specification and save it to a file`,
+
+    `<%= config.bin %> <%= command.id %> ./balance-sheet-spec.yaml --verbose
+Generate a balance sheet report with detailed logging using YAML`,
 
     `<%= config.bin %> <%= command.id %> ./income-statement.json --output table
-Generate an income statement in table format for console viewing`,
+Generate an income statement in table format using JSON specification`,
 
-    `<%= config.bin %> <%= command.id %> ./cashflow-spec.json --output json --destination ./reports/cashflow.json --verbose
-Generate a cash flow report, save as JSON file with verbose output`,
+    `<%= config.bin %> <%= command.id %> ./cashflow-spec.yml --output json --destination ./reports/cashflow.json --verbose
+Generate a cash flow report from YML file, save as JSON with verbose output`,
 
-    `# Example specification file (report-spec.json):
+    `# Example JSON specification file (report-spec.json):
 {
   "entity": "ACME_Corp",
   "reportType": "BalanceSheet", 
@@ -99,6 +129,16 @@ Generate a cash flow report, save as JSON file with verbose output`,
     "url": "http://localhost:4004/odata/v4/financial"
   }
 }`,
+
+    `# Example YAML specification file (report-spec.yaml):
+# Financial report configuration
+entity: ACME_Corp
+reportType: BalanceSheet  # Options: BalanceSheet, IncomeStatement, Cashflow
+period: "2025-01"         # Format: YYYY-MM
+
+# OData service endpoint
+destination:
+  url: http://localhost:4004/odata/v4/financial`,
   ];
   static override flags = {
     destination: Flags.string({

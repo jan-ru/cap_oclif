@@ -1,4 +1,6 @@
+import * as yaml from 'js-yaml';
 import { promises as fs } from 'node:fs';
+import { extname } from 'node:path';
 
 import {
   ErrorResponse,
@@ -14,6 +16,7 @@ import { validateReportSpecification } from '../types/validation.js';
 export class ConfigurationService {
   /**
    * Parses a report specification file and validates its contents
+   * Supports both JSON (.json) and YAML (.yaml, .yml) formats
    * @param filePath Path to the specification file
    * @returns Promise resolving to a validated ReportSpecification
    * @throws ErrorResponse if file cannot be read or specification is invalid
@@ -23,26 +26,76 @@ export class ConfigurationService {
       // Read the file
       const fileContent = await fs.readFile(filePath, 'utf8');
 
-      // Parse JSON
+      // Determine file format based on extension
+      const fileExtension = extname(filePath).toLowerCase();
+      const isYamlFile = fileExtension === '.yaml' || fileExtension === '.yml';
+
+      // Parse based on file format
       let parsedSpec: unknown;
       try {
-        parsedSpec = JSON.parse(fileContent);
+        parsedSpec = isYamlFile
+          ? yaml.load(fileContent, {
+              filename: filePath,
+              onWarning(warning) {
+                // Log YAML warnings but don't fail parsing
+                console.warn(`YAML Warning in ${filePath}: ${warning.message}`);
+              },
+            })
+          : JSON.parse(fileContent);
       } catch (parseError) {
+        const formatName = isYamlFile ? 'YAML' : 'JSON';
+        const errorCode = isYamlFile ? 'INVALID_YAML' : 'INVALID_JSON';
+
+        // Enhanced error handling for YAML with line numbers
+        const errorMessage = `Failed to parse specification file as ${formatName}`;
+        let details = `The file contains invalid ${formatName} syntax`;
+        let suggestions = [
+          `Ensure the file contains valid ${formatName} syntax`,
+        ];
+
+        if (parseError instanceof Error) {
+          details += `: ${parseError.message}`;
+
+          suggestions = isYamlFile
+            ? [
+                'Check YAML indentation (use spaces, not tabs)',
+                'Ensure proper YAML syntax for lists and objects',
+                'Verify that strings with special characters are quoted',
+                'Check for missing colons after keys',
+              ]
+            : [
+                'Check for missing commas, brackets, or quotes',
+                'Ensure proper JSON syntax',
+                'Validate JSON structure online if needed',
+              ];
+        }
+
+        throw this.createErrorResponse(errorCode, errorMessage, {
+          context: {
+            fileFormat: formatName,
+            filePath,
+            parseError:
+              parseError instanceof Error
+                ? parseError.message
+                : String(parseError),
+          },
+          details,
+          suggestions,
+        });
+      }
+
+      // Handle empty or null YAML documents
+      if (parsedSpec === null || parsedSpec === undefined) {
         throw this.createErrorResponse(
-          'INVALID_JSON',
-          'Failed to parse specification file as JSON',
+          'EMPTY_SPECIFICATION',
+          'Specification file is empty or contains no valid data',
           {
-            context: {
-              filePath,
-              parseError:
-                parseError instanceof Error
-                  ? parseError.message
-                  : String(parseError),
-            },
-            details: `The file contains invalid JSON syntax: ${parseError instanceof Error ? parseError.message : 'Unknown parsing error'}`,
+            context: { filePath },
+            details: 'The file does not contain any valid configuration data',
             suggestions: [
-              'Ensure the file contains valid JSON syntax',
-              'Check for missing commas, brackets, or quotes',
+              'Ensure the file contains a valid specification',
+              'Check that the file is not empty',
+              'Verify the file format is correct',
             ],
           }
         );
@@ -92,6 +145,7 @@ export class ConfigurationService {
                   suggestions: [
                     'Check that the file path is correct',
                     'Ensure the file exists in the specified location',
+                    'Supported formats: .json, .yaml, .yml',
                   ],
                 }
               );
@@ -120,7 +174,8 @@ export class ConfigurationService {
                   context: { filePath },
                   details: `The path '${filePath}' points to a directory, not a file`,
                   suggestions: [
-                    'Provide a path to a JSON file, not a directory',
+                    'Provide a path to a specification file, not a directory',
+                    'Supported formats: .json, .yaml, .yml',
                   ],
                 }
               );
@@ -138,6 +193,7 @@ export class ConfigurationService {
             suggestions: [
               'Check that the file exists and is readable',
               'Verify the file path is correct',
+              'Supported formats: .json, .yaml, .yml',
             ],
           }
         );
@@ -151,7 +207,11 @@ export class ConfigurationService {
           context: { error: String(error), filePath },
           details:
             'An unexpected error occurred while parsing the specification',
-          suggestions: ['Try again', 'Check the file format and content'],
+          suggestions: [
+            'Try again',
+            'Check the file format and content',
+            'Supported formats: .json, .yaml, .yml',
+          ],
         }
       );
     }
