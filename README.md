@@ -310,6 +310,13 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ## Changelog
 
+### v0.1.3 (2025-01-13)
+
+- Added comprehensive GitHub issue templates for structured issue creation
+- Created detailed issue content files for all planned features and epics
+- Enhanced project documentation with issue templates for feature requests, epics, and bug reports
+- Prepared issue content for YAML support, HTTP API mode, Keycloak authentication, and multi-client integration
+
 ### v0.1.2 (2025-01-13)
 
 - Added comprehensive end-to-end integration tests covering complete CLI workflows

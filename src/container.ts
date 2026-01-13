@@ -109,10 +109,10 @@ export class DIContainer {
    * Reset all services (useful for testing)
    */
   reset(): void {
-    this._configurationService = undefined;
-    this._outputFormatter = undefined;
-    this._reportService = undefined;
-    this._logger = undefined;
+    this._configurationService = undefined as any;
+    this._outputFormatter = undefined as any;
+    this._reportService = undefined as any;
+    this._logger = undefined as any;
   }
 }
 

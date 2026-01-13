@@ -2,32 +2,46 @@
 
 ## Overview
 
-The Financial Reports CLI is a TypeScript-based command-line tool built with oclif that provides a typed wrapper around @sap-cloud-sdk for querying OData v4 datasources (CAP services) to retrieve financial reports. The tool accepts report specification files as input and generates structured financial data output in multiple formats.
+The Financial Reports CLI is a TypeScript-based dual-mode application built with oclif that provides a typed wrapper around @sap-cloud-sdk for querying OData v4 datasources (CAP services) to retrieve financial reports. The tool operates in two modes:
+
+1. **CLI Mode**: Traditional command-line interface accepting YAML report specification files
+2. **HTTP API Mode**: RESTful API server for integration with OpenUI5 applications and Excel PowerQuery
+
+The application supports multi-client integration through Keycloak JWT authentication and runs in Docker containers for scalable deployment.
 
 ## Architecture
 
-The application follows a layered architecture with clear separation of concerns:
+The application follows a layered architecture with clear separation of concerns, supporting both CLI and HTTP API modes:
 
 ```mermaid
 graph TB
     CLI[CLI Layer - oclif Commands] --> Service[Service Layer]
+    HTTP[HTTP API Layer - Express.js] --> Service
+    Auth[Keycloak JWT Middleware] --> HTTP
+    
     Service --> OData[OData Client Layer - @sap-cloud-sdk]
     Service --> Config[Configuration Layer]
     Service --> Format[Output Formatting Layer]
 
-    Config --> Spec[Report Specification Parser]
+    Config --> YAML[YAML Specification Parser]
     OData --> CAP[CAP OData v4 Service]
     Format --> JSON[JSON Output]
     Format --> CSV[CSV Output]
     Format --> Table[Table Output]
+    
+    HTTP --> OpenUI5[OpenUI5 Integration]
+    HTTP --> Excel[Excel PowerQuery Integration]
 ```
 
 ### Key Architectural Principles
 
-1. **Separation of Concerns**: CLI commands handle user interaction, services handle business logic, clients handle data access
-2. **Type Safety**: Leverage TypeScript and @sap-cloud-sdk's typed OData clients throughout
-3. **Configuration-Driven**: Report specifications drive query generation and execution
-4. **Extensible Output**: Support multiple output formats through a pluggable formatting system
+1. **Dual-Mode Operation**: Support both CLI and HTTP API interfaces with shared business logic
+2. **Separation of Concerns**: CLI/HTTP layers handle user interaction, services handle business logic, clients handle data access
+3. **Type Safety**: Leverage TypeScript and @sap-cloud-sdk's typed OData clients throughout
+4. **Configuration-Driven**: YAML report specifications drive query generation and execution
+5. **Extensible Output**: Support multiple output formats through a pluggable formatting system
+6. **Secure Multi-Client**: JWT-based authentication for API access from multiple client types
+7. **Container-Ready**: Designed for Docker deployment with environment-based configuration
 
 ## Components and Interfaces
 
@@ -51,12 +65,68 @@ interface ReportCommandFlags {
 }
 ```
 
+### HTTP API Layer
+
+**ApiServer** (Express.js Application)
+
+- Provides RESTful endpoints for report generation
+- Handles JWT authentication middleware
+- Supports both synchronous and asynchronous report generation
+
+```typescript
+interface ApiServer {
+  start(port: number): Promise<void>;
+  stop(): Promise<void>;
+}
+
+interface ApiEndpoints {
+  'POST /api/reports': (spec: ReportSpecification) => Promise<ReportResult>;
+  'GET /api/reports/:id': (id: string) => Promise<ReportResult>;
+  'GET /api/health': () => Promise<HealthStatus>;
+}
+
+interface AuthenticatedRequest extends Request {
+  user: {
+    sub: string;
+    email: string;
+    roles: string[];
+  };
+}
+```
+
+**KeycloakAuthMiddleware**
+
+- Validates JWT tokens from Keycloak
+- Extracts user information for authorization
+- Handles token refresh and validation
+
+```typescript
+interface KeycloakAuthMiddleware {
+  validateToken(token: string): Promise<TokenValidationResult>;
+  extractUserInfo(token: string): Promise<UserInfo>;
+}
+
+interface TokenValidationResult {
+  valid: boolean;
+  user?: UserInfo;
+  error?: string;
+}
+
+interface UserInfo {
+  sub: string;
+  email: string;
+  roles: string[];
+  exp: number;
+}
+```
+
 ### Service Layer
 
 **ReportService**
 
 - Core business logic for report generation
 - Coordinates between configuration parsing, OData querying, and output formatting
+- Supports both synchronous and asynchronous execution modes
 
 ```typescript
 interface ReportService {
@@ -64,29 +134,78 @@ interface ReportService {
     specFile: string,
     options: ReportOptions
   ): Promise<ReportResult>;
+  generateReportFromSpec(
+    spec: ReportSpecification,
+    options: ReportOptions
+  ): Promise<ReportResult>;
+  generateReportAsync(
+    spec: ReportSpecification,
+    options: ReportOptions
+  ): Promise<AsyncReportResult>;
+  getAsyncReportStatus(reportId: string): Promise<AsyncReportStatus>;
 }
 
 interface ReportOptions {
   outputFormat: OutputFormat;
   verbose: boolean;
   destination?: string;
+  userId?: string;
+  requestId?: string;
 }
 
 interface ReportResult {
   data: FinancialData[];
   metadata: ReportMetadata;
 }
+
+interface AsyncReportResult {
+  reportId: string;
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  estimatedCompletion?: Date;
+}
+
+interface AsyncReportStatus {
+  reportId: string;
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  progress?: number;
+  result?: ReportResult;
+  error?: string;
+  createdAt: Date;
+  completedAt?: Date;
+}
 ```
 
 **ConfigurationService**
 
-- Parses and validates report specification files
+- Parses and validates YAML report specification files
 - Provides typed configuration objects
+- Supports environment-based configuration for Docker deployment
 
 ```typescript
 interface ConfigurationService {
-  parseSpecification(filePath: string): Promise<ReportSpecification>;
+  parseYamlSpecification(filePath: string): Promise<ReportSpecification>;
+  parseYamlContent(yamlContent: string): Promise<ReportSpecification>;
   validateSpecification(spec: ReportSpecification): ValidationResult;
+  loadEnvironmentConfig(): Promise<EnvironmentConfig>;
+}
+
+interface EnvironmentConfig {
+  keycloak: KeycloakConfig;
+  odata: ODataConfig;
+  server: ServerConfig;
+}
+
+interface KeycloakConfig {
+  realm: string;
+  authServerUrl: string;
+  clientId: string;
+  clientSecret?: string;
+}
+
+interface ServerConfig {
+  port: number;
+  host: string;
+  corsOrigins: string[];
 }
 ```
 
@@ -129,7 +248,7 @@ interface OutputFormatter {
 
 ## Data Models
 
-### Report Specification
+### Report Specification (YAML Format)
 
 ```typescript
 interface ReportSpecification {
@@ -156,6 +275,26 @@ interface FilterConfig {
   operator: 'eq' | 'ne' | 'gt' | 'lt' | 'ge' | 'le';
   value: string | number;
 }
+```
+
+**Example YAML Specification:**
+
+```yaml
+entity: "COMPANY_001"
+reportType: "BalanceSheet"
+period: "2024-12"
+destination:
+  url: "https://api.example.com/odata/v4"
+  authentication:
+    type: "oauth2"
+    clientId: "financial-reports"
+filters:
+  - field: "Currency"
+    operator: "eq"
+    value: "USD"
+  - field: "Amount"
+    operator: "gt"
+    value: 1000
 ```
 
 ### Financial Data Models
@@ -196,6 +335,36 @@ interface CashFlowData extends FinancialData {
 }
 ```
 
+### API Request/Response Models
+
+```typescript
+interface ApiReportRequest {
+  specification: ReportSpecification;
+  outputFormat?: OutputFormat;
+  async?: boolean;
+}
+
+interface ApiReportResponse {
+  id: string;
+  status: 'pending' | 'completed' | 'failed';
+  data?: FinancialData[];
+  metadata?: ReportMetadata;
+  error?: string;
+  createdAt: Date;
+  completedAt?: Date;
+}
+
+interface HealthStatus {
+  status: 'healthy' | 'unhealthy';
+  version: string;
+  uptime: number;
+  dependencies: {
+    keycloak: 'connected' | 'disconnected';
+    odata: 'connected' | 'disconnected';
+  };
+}
+```
+
 ### Report Metadata
 
 ```typescript
@@ -206,6 +375,8 @@ interface ReportMetadata {
   period: string;
   recordCount: number;
   executionTime: number;
+  requestId?: string;
+  userId?: string;
 }
 ```
 
@@ -215,10 +386,10 @@ _A property is a characteristic or behavior that should hold true across all val
 
 ### Converting EARS to Properties
 
-Based on the prework analysis, I'll convert the testable acceptance criteria into universally quantified properties:
+Based on the updated requirements, I'll convert the testable acceptance criteria into universally quantified properties:
 
-**Property 1: Specification Parsing and Validation**
-_For any_ report specification file, parsing should successfully extract entity, report type, and period information when the specification is valid, and return descriptive error messages when invalid or missing required fields
+**Property 1: YAML Specification Parsing and Validation**
+_For any_ YAML report specification file, parsing should successfully extract entity, report type, and period information when the specification is valid, and return descriptive error messages when invalid or missing required fields
 **Validates: Requirements 1.1, 1.4, 1.5, 5.5**
 
 **Property 2: Report Type Support**
@@ -265,21 +436,49 @@ _For any_ financial report data, the system should be able to generate output in
 _For any_ output format and valid file path, the system should support redirecting output to files
 **Validates: Requirements 6.5**
 
+**Property 13: HTTP API Endpoint Behavior**
+_For any_ valid HTTP request to API endpoints, the system should return appropriate HTTP status codes and structured JSON responses
+**Validates: Requirements 7.1, 7.2, 7.3**
+
+**Property 14: JWT Authentication Validation**
+_For any_ HTTP API request, the system should validate JWT tokens and reject requests with invalid, expired, or missing tokens
+**Validates: Requirements 9.1, 9.2, 9.3**
+
+**Property 15: Multi-Client Integration Support**
+_For any_ client integration (OpenUI5, Excel PowerQuery), the system should provide appropriate response formats and authentication mechanisms
+**Validates: Requirements 8.1, 8.2, 8.3**
+
+**Property 16: Asynchronous Report Processing**
+_For any_ long-running report generation request, the system should support asynchronous processing with status tracking
+**Validates: Requirements 7.4, 7.5**
+
 ## Error Handling
 
-The application implements comprehensive error handling at multiple levels:
+The application implements comprehensive error handling at multiple levels for both CLI and HTTP API modes:
 
 ### Input Validation Errors
 
-- **Specification File Errors**: Invalid JSON, missing required fields, unsupported values
+- **YAML Specification File Errors**: Invalid YAML syntax, missing required fields, unsupported values
 - **Period Format Errors**: Invalid date formats, out-of-range periods
 - **File System Errors**: Missing files, permission issues, invalid paths
+
+### Authentication and Authorization Errors
+
+- **JWT Token Errors**: Invalid tokens, expired tokens, missing tokens, malformed tokens
+- **Keycloak Integration Errors**: Connection failures, realm configuration issues, user validation failures
+- **Authorization Errors**: Insufficient permissions, role-based access violations
 
 ### OData Service Errors
 
 - **Connection Errors**: Network failures, authentication failures, invalid endpoints
 - **Query Errors**: Invalid entity names, malformed queries, service unavailable
 - **Data Errors**: Empty result sets, data format inconsistencies
+
+### HTTP API Errors
+
+- **Request Validation Errors**: Invalid JSON payloads, missing required fields, unsupported content types
+- **Rate Limiting Errors**: Too many requests, quota exceeded
+- **Server Errors**: Internal server errors, service unavailable, timeout errors
 
 ### Output Generation Errors
 
@@ -288,10 +487,11 @@ The application implements comprehensive error handling at multiple levels:
 
 ### Error Response Format
 
-All errors follow a consistent structure:
+All errors follow a consistent structure for both CLI and API modes:
 
+**CLI Error Format:**
 ```typescript
-interface ErrorResponse {
+interface CliErrorResponse {
   error: {
     code: string;
     message: string;
@@ -303,16 +503,33 @@ interface ErrorResponse {
 }
 ```
 
+**HTTP API Error Format:**
+```typescript
+interface ApiErrorResponse {
+  error: {
+    code: string;
+    message: string;
+    details?: string;
+    requestId: string;
+  };
+  timestamp: Date;
+  path: string;
+  method: string;
+}
+```
+
 ## Testing Strategy
 
-The testing approach combines unit tests for specific functionality with property-based tests for universal correctness properties.
+The testing approach combines unit tests for specific functionality with property-based tests for universal correctness properties, covering both CLI and HTTP API modes.
 
 ### Unit Testing
 
-- **Configuration Parsing**: Test specific valid and invalid specification files
+- **YAML Configuration Parsing**: Test specific valid and invalid YAML specification files
 - **OData Client Integration**: Test connection establishment and query execution
 - **Output Formatting**: Test specific data formatting scenarios
 - **CLI Command Handling**: Test command-line argument parsing and help text
+- **HTTP API Endpoints**: Test request/response handling, authentication middleware
+- **Keycloak Integration**: Test JWT token validation and user extraction
 
 ### Property-Based Testing
 
@@ -321,26 +538,141 @@ Property-based tests will be implemented using [fast-check](https://github.com/d
 Each property test will be tagged with a comment referencing its design document property:
 
 ```typescript
-// Feature: financial-reports-cli, Property 1: Specification Parsing and Validation
+// Feature: financial-reports-cli, Property 1: YAML Specification Parsing and Validation
 ```
 
 **Key Property Test Areas:**
 
-- **Input Validation**: Generate random specification files and verify parsing behavior
+- **YAML Input Validation**: Generate random YAML specification files and verify parsing behavior
 - **Query Generation**: Generate random report parameters and verify correct OData queries
 - **Output Formatting**: Generate random financial data and verify consistent output structure
 - **Error Handling**: Generate various error conditions and verify appropriate responses
 - **CLI Behavior**: Generate random command-line inputs and verify correct processing
+- **HTTP API Behavior**: Generate random API requests and verify correct responses
+- **JWT Authentication**: Generate various token scenarios and verify authentication behavior
 
 ### Integration Testing
 
-- **End-to-End Workflows**: Test complete report generation flows
+- **End-to-End CLI Workflows**: Test complete report generation flows via command line
+- **End-to-End API Workflows**: Test complete report generation flows via HTTP API
 - **OData Service Integration**: Test against mock and real OData services
-- **File System Integration**: Test specification file reading and output file writing
+- **File System Integration**: Test YAML specification file reading and output file writing
+- **Keycloak Integration**: Test authentication flows with mock Keycloak server
+- **Multi-Client Integration**: Test OpenUI5 and PowerQuery integration scenarios
+
+### Container Testing
+
+- **Docker Build Testing**: Verify container builds successfully with all dependencies
+- **Environment Configuration**: Test environment variable configuration in containers
+- **Health Check Testing**: Verify container health endpoints respond correctly
+- **Multi-Container Integration**: Test integration with Keycloak and OData services in containers
 
 ### Test Configuration
 
 - Minimum 100 iterations per property-based test
 - Mock OData services for consistent testing
+- Mock Keycloak server for authentication testing
 - Test data generators for financial entities and periods
 - Comprehensive error condition simulation
+- Docker Compose setup for integration testing
+- Automated testing in CI/CD pipeline
+
+## Deployment Architecture
+
+### Docker Container Configuration
+
+The application is designed for containerized deployment with the following structure:
+
+```dockerfile
+# Multi-stage build for optimized production image
+FROM node:18-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --only=production
+
+FROM node:18-alpine AS runtime
+WORKDIR /app
+COPY --from=builder /app/node_modules ./node_modules
+COPY dist ./dist
+COPY package.json ./
+EXPOSE 3000
+CMD ["node", "dist/index.js", "server"]
+```
+
+### Environment Configuration
+
+```typescript
+interface DeploymentConfig {
+  // Server Configuration
+  PORT: number;
+  HOST: string;
+  NODE_ENV: 'development' | 'production' | 'test';
+  
+  // Keycloak Configuration
+  KEYCLOAK_REALM: string;
+  KEYCLOAK_AUTH_SERVER_URL: string;
+  KEYCLOAK_CLIENT_ID: string;
+  KEYCLOAK_CLIENT_SECRET?: string;
+  
+  // OData Service Configuration
+  ODATA_SERVICE_URL: string;
+  ODATA_CLIENT_ID?: string;
+  ODATA_CLIENT_SECRET?: string;
+  
+  // Logging and Monitoring
+  LOG_LEVEL: 'error' | 'warn' | 'info' | 'debug';
+  ENABLE_METRICS: boolean;
+  
+  // CORS Configuration
+  CORS_ORIGINS: string; // Comma-separated list
+}
+```
+
+### Coolify Deployment
+
+The application will be deployed using Coolify on Hetzner infrastructure:
+
+- **Container Registry**: Docker Hub or private registry
+- **Load Balancing**: Coolify's built-in load balancer
+- **SSL/TLS**: Automatic certificate management via Let's Encrypt
+- **Environment Management**: Coolify environment variable management
+- **Health Checks**: HTTP health endpoint at `/api/health`
+- **Logging**: Structured JSON logging for Coolify log aggregation
+
+### Integration Points
+
+**OpenUI5 + CAP Integration:**
+```typescript
+// CAP Service integration endpoint
+app.post('/api/cap/reports', authenticateJWT, async (req, res) => {
+  const spec = await parseCapRequest(req.body);
+  const result = await reportService.generateReport(spec, {
+    outputFormat: 'json',
+    userId: req.user.sub,
+    requestId: req.headers['x-request-id']
+  });
+  res.json(result);
+});
+```
+
+**Excel PowerQuery Integration:**
+```typescript
+// PowerQuery-compatible endpoint with OData-like response
+app.get('/api/powerquery/reports', authenticateJWT, async (req, res) => {
+  const spec = parseQueryParameters(req.query);
+  const result = await reportService.generateReport(spec, {
+    outputFormat: 'json',
+    userId: req.user.sub
+  });
+  res.json(formatForPowerQuery(result));
+});
+```
+
+### Security Considerations
+
+- **JWT Token Validation**: All API endpoints require valid Keycloak JWT tokens
+- **CORS Configuration**: Restricted to known client origins (OpenUI5 apps, Excel)
+- **Rate Limiting**: Implemented to prevent abuse
+- **Input Validation**: Comprehensive validation of all inputs
+- **Audit Logging**: All report generation requests are logged with user context
+- **Container Security**: Non-root user, minimal base image, security scanning
