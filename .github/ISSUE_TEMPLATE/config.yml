@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://github.com/jan-ru/cap_oclif/blob/main/README.md
+    about: Check the documentation for usage examples and troubleshooting
+  - name: Discussions
+    url: https://github.com/jan-ru/cap_oclif/discussions
+    about: Ask questions and discuss ideas with the community
