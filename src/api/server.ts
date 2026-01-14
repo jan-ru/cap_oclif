@@ -2,6 +2,7 @@ import express, { Application, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import { Algorithm } from 'jsonwebtoken';
 
 import { logger } from '../cli.js';
 import { ErrorResponse } from '../types/index.js';
@@ -112,7 +113,7 @@ export class ApiServer {
     if (this.config.enableLogging) {
       this.app.use(morgan('combined', {
         stream: {
-          write: (message: string) => {
+          write(message: string) {
             logger.info(`HTTP: ${message.trim()}`);
           },
         },
@@ -122,7 +123,7 @@ export class ApiServer {
     // Request ID middleware for tracing
     this.app.use((req: Request, res: Response, next: NextFunction) => {
       const requestId = req.headers['x-request-id'] || 
-                       `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                       `req_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
       req.headers['x-request-id'] = requestId as string;
       res.setHeader('X-Request-ID', requestId);
       next();
@@ -159,7 +160,7 @@ export class ApiServer {
         {
           ...(authConfig.jwt.audience && { audience: authConfig.jwt.audience }),
           clockTolerance: authConfig.jwt.clockTolerance,
-          algorithms: authConfig.jwt.algorithms as any[]
+          algorithms: authConfig.jwt.algorithms as Algorithm[]
         }
       );
       
@@ -473,14 +474,21 @@ export class ApiServer {
    */
   private getHttpStatusForHealth(healthStatus: HealthStatus): number {
     switch (healthStatus) {
-      case HealthStatus.Healthy:
+      case HealthStatus.Healthy: {
         return 200;
-      case HealthStatus.Degraded:
-        return 200; // Still operational, but with warnings
-      case HealthStatus.Unhealthy:
-        return 503; // Service Unavailable
-      default:
+      }
+
+      case HealthStatus.Degraded: {
+        return 200;
+      } // Still operational, but with warnings
+
+      case HealthStatus.Unhealthy: {
+        return 503;
+      } // Service Unavailable
+
+      default: {
         return 500;
+      }
     }
   }
 

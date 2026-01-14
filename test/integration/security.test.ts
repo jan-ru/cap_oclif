@@ -7,7 +7,7 @@ import { UserContextExtractorService } from '../../src/auth/user-context-extract
 import { AuthenticationAuditorService } from '../../src/auth/authentication-auditor.js';
 import { AuthenticationRateLimiter } from '../../src/auth/rate-limiter.js';
 import jwt from 'jsonwebtoken';
-import crypto from 'crypto';
+import crypto from 'node:crypto';
 
 /**
  * Security Integration Tests
@@ -29,7 +29,7 @@ describe('Security Integration Tests', () => {
   let rateLimiter: AuthenticationRateLimiter;
 
   beforeEach(() => {
-    jwksClient = new JWKSClientService(jwksUri, 300000);
+    jwksClient = new JWKSClientService(jwksUri, 300_000);
     auditor = new AuthenticationAuditorService();
     validator = new JWTValidatorService(jwksClient, issuer, {
       algorithms: ['RS256'],
@@ -37,7 +37,7 @@ describe('Security Integration Tests', () => {
     });
     extractor = new UserContextExtractorService();
     rateLimiter = new AuthenticationRateLimiter({
-      windowMs: 60000,
+      windowMs: 60_000,
       maxRequests: 5
     });
     
@@ -45,9 +45,9 @@ describe('Security Integration Tests', () => {
       keycloakUrl,
       realm,
       jwksUri,
-      cacheTimeout: 300000,
+      cacheTimeout: 300_000,
       rateLimitConfig: {
-        windowMs: 60000,
+        windowMs: 60_000,
         maxRequests: 5
       }
     };
@@ -253,23 +253,23 @@ describe('Security Integration Tests', () => {
     it('should reset rate limit after time window', async () => {
       // This test would require time manipulation or waiting
       // For now, we verify the rate limiter has a time window configured
-      expect(rateLimiter['windowMs']).toBe(60000);
+      expect(rateLimiter.windowMs).toBe(60_000);
     });
 
     it('should apply different rate limits for different endpoints', () => {
       // Create rate limiters with different configurations
       const strictLimiter = new AuthenticationRateLimiter({
-        windowMs: 60000,
+        windowMs: 60_000,
         maxRequests: 3
       });
       
       const lenientLimiter = new AuthenticationRateLimiter({
-        windowMs: 60000,
+        windowMs: 60_000,
         maxRequests: 100
       });
       
-      expect(strictLimiter['maxRequests']).toBe(3);
-      expect(lenientLimiter['maxRequests']).toBe(100);
+      expect(strictLimiter.maxRequests).toBe(3);
+      expect(lenientLimiter.maxRequests).toBe(100);
     });
   });
 
@@ -332,7 +332,7 @@ describe('Security Integration Tests', () => {
     });
 
     it('should not expose JWKS endpoint URLs in errors', async () => {
-      const invalidJwksClient = new JWKSClientService('http://secret-internal-server:8080/jwks', 300000);
+      const invalidJwksClient = new JWKSClientService('http://secret-internal-server:8080/jwks', 300_000);
       
       try {
         await invalidJwksClient.fetchJWKS();
@@ -577,7 +577,7 @@ describe('Security Integration Tests', () => {
 
     it('should handle health check failures gracefully', async () => {
       // Create middleware with invalid JWKS endpoint
-      const invalidJwksClient = new JWKSClientService('http://invalid:9999/jwks', 300000);
+      const invalidJwksClient = new JWKSClientService('http://invalid:9999/jwks', 300_000);
       const invalidValidator = new JWTValidatorService(invalidJwksClient, issuer);
       
       const invalidMiddleware = new AuthenticationMiddlewareService(
@@ -588,8 +588,8 @@ describe('Security Integration Tests', () => {
           keycloakUrl: 'http://invalid:9999',
           realm: 'test',
           jwksUri: 'http://invalid:9999/jwks',
-          cacheTimeout: 300000,
-          rateLimitConfig: { windowMs: 60000, maxRequests: 100 }
+          cacheTimeout: 300_000,
+          rateLimitConfig: { windowMs: 60_000, maxRequests: 100 }
         }
       );
       

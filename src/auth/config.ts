@@ -19,7 +19,7 @@ export class AuthConfigLoader {
       return this.cachedConfig;
     }
 
-    const keycloakConfig: any = {
+    const keycloakConfig: Partial<KeycloakAuthConfig['keycloak']> = {
       url: this.getRequiredEnv('KEYCLOAK_URL'),
       realm: this.getRequiredEnv('KEYCLOAK_REALM'),
     };
@@ -28,6 +28,7 @@ export class AuthConfigLoader {
     if (process.env.KEYCLOAK_CLIENT_ID) {
       keycloakConfig.clientId = process.env.KEYCLOAK_CLIENT_ID;
     }
+
     if (process.env.KEYCLOAK_CLIENT_SECRET) {
       keycloakConfig.clientSecret = process.env.KEYCLOAK_CLIENT_SECRET;
     }
@@ -38,10 +39,10 @@ export class AuthConfigLoader {
       keycloakConfig.realms = multiRealmConfig;
     }
 
-    const jwtConfig: any = {
+    const jwtConfig: Partial<KeycloakAuthConfig['jwt']> = {
       issuer: this.getRequiredEnv('JWT_ISSUER'),
       algorithms: this.parseAlgorithms(process.env.JWT_ALGORITHMS || 'RS256'),
-      clockTolerance: parseInt(process.env.JWT_CLOCK_TOLERANCE || '30', 10),
+      clockTolerance: Number.parseInt(process.env.JWT_CLOCK_TOLERANCE || '30', 10),
     };
 
     // Only add audience if it exists
@@ -49,9 +50,9 @@ export class AuthConfigLoader {
       jwtConfig.audience = process.env.JWT_AUDIENCE;
     }
 
-    const securityConfig: any = {
-      rateLimitWindowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10), // 15 minutes
-      rateLimitMaxRequests: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100', 10),
+    const securityConfig: Partial<KeycloakAuthConfig['security']> = {
+      rateLimitWindowMs: Number.parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10), // 15 minutes
+      rateLimitMaxRequests: Number.parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100', 10),
       requireHttps: process.env.REQUIRE_HTTPS !== 'false',
     };
 
@@ -62,14 +63,14 @@ export class AuthConfigLoader {
     }
 
     const config: KeycloakAuthConfig = {
-      keycloak: keycloakConfig,
-      jwt: jwtConfig,
+      keycloak: keycloakConfig as KeycloakAuthConfig['keycloak'],
+      jwt: jwtConfig as KeycloakAuthConfig['jwt'],
       jwks: {
-        cacheTimeout: parseInt(process.env.JWKS_CACHE_TIMEOUT || '3600000', 10), // 1 hour default
-        rateLimit: parseInt(process.env.JWKS_RATE_LIMIT || '10', 10),
-        requestsPerMinute: parseInt(process.env.JWKS_REQUESTS_PER_MINUTE || '5', 10),
+        cacheTimeout: Number.parseInt(process.env.JWKS_CACHE_TIMEOUT || '3600000', 10), // 1 hour default
+        rateLimit: Number.parseInt(process.env.JWKS_RATE_LIMIT || '10', 10),
+        requestsPerMinute: Number.parseInt(process.env.JWKS_REQUESTS_PER_MINUTE || '5', 10),
       },
-      security: securityConfig,
+      security: securityConfig as KeycloakAuthConfig['security'],
       logging: {
         level: this.parseLogLevel(process.env.LOG_LEVEL || 'info'),
         auditEnabled: process.env.AUDIT_ENABLED !== 'false',
@@ -126,9 +127,11 @@ export class AuthConfigLoader {
       if (process.env[`REALM_${realmIndex}_CLIENT_ID`]) {
         realmConfig.clientId = process.env[`REALM_${realmIndex}_CLIENT_ID`]!;
       }
+
       if (process.env[`REALM_${realmIndex}_CLIENT_SECRET`]) {
         realmConfig.clientSecret = process.env[`REALM_${realmIndex}_CLIENT_SECRET`]!;
       }
+
       if (process.env[`REALM_${realmIndex}_AUDIENCE`]) {
         realmConfig.audience = process.env[`REALM_${realmIndex}_AUDIENCE`]!;
       }
@@ -144,26 +147,28 @@ export class AuthConfigLoader {
   /**
    * Validate individual realm configuration
    */
-  private static validateRealmConfig(realm: any): void {
+  private static validateRealmConfig(realm: RealmConfig): void {
     if (!realm.name || typeof realm.name !== 'string') {
       throw new Error('Realm configuration must have a valid name');
     }
+
     if (!realm.url || typeof realm.url !== 'string') {
       throw new Error(`Realm ${realm.name} must have a valid URL`);
     }
+
     if (!realm.issuer || typeof realm.issuer !== 'string') {
       throw new Error(`Realm ${realm.name} must have a valid issuer`);
     }
 
     // Validate URL formats
     try {
-      new URL(realm.url);
+      void new URL(realm.url);
     } catch {
       throw new Error(`Invalid URL for realm ${realm.name}: ${realm.url}`);
     }
 
     try {
-      new URL(realm.issuer);
+      void new URL(realm.issuer);
     } catch {
       throw new Error(`Invalid issuer URL for realm ${realm.name}: ${realm.issuer}`);
     }
@@ -178,13 +183,13 @@ export class AuthConfigLoader {
     const newConfig = this.loadConfig();
     
     // Notify all watchers of configuration change
-    this.configWatchers.forEach(watcher => {
+    for (const watcher of this.configWatchers) {
       try {
         watcher(newConfig);
       } catch (error) {
         console.error('Error in configuration watcher:', error);
       }
-    });
+    }
 
     return newConfig;
   }
@@ -201,7 +206,7 @@ export class AuthConfigLoader {
    */
   static removeConfigWatcher(callback: (config: KeycloakAuthConfig) => void): void {
     const index = this.configWatchers.indexOf(callback);
-    if (index > -1) {
+    if (index !== -1) {
       this.configWatchers.splice(index, 1);
     }
   }
@@ -223,9 +228,11 @@ export class AuthConfigLoader {
       if (authConfig.keycloak.clientId) {
         realmConfig.clientId = authConfig.keycloak.clientId;
       }
+
       if (authConfig.keycloak.clientSecret) {
         realmConfig.clientSecret = authConfig.keycloak.clientSecret;
       }
+
       if (authConfig.jwt.audience) {
         realmConfig.audience = authConfig.jwt.audience;
       }
@@ -263,6 +270,7 @@ export class AuthConfigLoader {
     if (!value) {
       throw new Error(`Required environment variable ${name} is not set`);
     }
+
     return value;
   }
 
@@ -289,6 +297,7 @@ export class AuthConfigLoader {
     if (!validLevels.includes(level)) {
       throw new Error(`Invalid log level: ${level}. Must be one of: ${validLevels.join(', ')}`);
     }
+
     return level as 'debug' | 'info' | 'warn' | 'error';
   }
 
@@ -298,14 +307,14 @@ export class AuthConfigLoader {
   private static validateConfig(config: KeycloakAuthConfig): void {
     // Validate Keycloak URL format
     try {
-      new URL(config.keycloak.url);
+      void new URL(config.keycloak.url);
     } catch {
       throw new Error(`Invalid Keycloak URL: ${config.keycloak.url}`);
     }
 
     // Validate JWT issuer format
     try {
-      new URL(config.jwt.issuer);
+      void new URL(config.jwt.issuer);
     } catch {
       throw new Error(`Invalid JWT issuer URL: ${config.jwt.issuer}`);
     }
@@ -385,7 +394,7 @@ export class AuthConfigLoader {
    * Create a simple AuthConfig from KeycloakAuthConfig for middleware
    */
   static createAuthConfig(keycloakConfig: KeycloakAuthConfig): import('./types.js').AuthConfig {
-    const authConfig: any = {
+    const authConfig: Partial<import('./types.js').AuthConfig> = {
       keycloakUrl: keycloakConfig.keycloak.url,
       realm: keycloakConfig.keycloak.realm,
       jwksUri: this.getJwksUri(keycloakConfig),
@@ -401,6 +410,6 @@ export class AuthConfigLoader {
       authConfig.clientId = keycloakConfig.keycloak.clientId;
     }
 
-    return authConfig;
+    return authConfig as import('./types.js').AuthConfig;
   }
 }

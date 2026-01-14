@@ -5,13 +5,11 @@ import { CreateReportRequest } from '../../src/api/types.js';
 import { ReportResult, ReportSpecification, ReportType } from '../../src/types/index.js';
 
 // Mock the ReportService
-vi.mock('../../src/services/report-service.js', () => {
-  return {
+vi.mock('../../src/services/report-service.js', () => ({
     ReportService: vi.fn().mockImplementation(() => ({
       generateReport: vi.fn(),
     })),
-  };
-});
+  }));
 
 describe('ReportApiService', () => {
   let reportApiService: ReportApiService;
@@ -161,7 +159,7 @@ describe('ReportApiService', () => {
         lineItems: [
           {
             account: 'Assets',
-            amount: 100000,
+            amount: 100_000,
             currency: 'USD',
           },
         ],

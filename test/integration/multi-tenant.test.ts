@@ -5,7 +5,7 @@ import { AuthenticationMiddlewareService } from '../../src/auth/middleware.js';
 import { UserContextExtractorService } from '../../src/auth/user-context-extractor.js';
 import { AuthenticationAuditorService } from '../../src/auth/authentication-auditor.js';
 import jwt from 'jsonwebtoken';
-import crypto from 'crypto';
+import crypto from 'node:crypto';
 
 /**
  * Integration Tests for Multi-Tenant Scenarios
@@ -29,7 +29,7 @@ describe('Multi-Tenant Integration Tests', () => {
         const jwksUri = `${keycloakUrl}/realms/${realm.name}/protocol/openid-connect/certs`;
         const issuer = `${keycloakUrl}/realms/${realm.name}`;
         
-        const jwksClient = new JWKSClientService(jwksUri, 300000);
+        const jwksClient = new JWKSClientService(jwksUri, 300_000);
         const validator = new JWTValidatorService(jwksClient, issuer, {
           audience: realm.clientId,
           algorithms: ['RS256']
@@ -49,14 +49,14 @@ describe('Multi-Tenant Integration Tests', () => {
         const jwksUri = `${keycloakUrl}/realms/${realm.name}/protocol/openid-connect/certs`;
         return {
           realm: realm.name,
-          client: new JWKSClientService(jwksUri, 300000)
+          client: new JWKSClientService(jwksUri, 300_000)
         };
       });
       
       expect(realmClients).toHaveLength(3);
       
       // Each client should have a unique JWKS URI
-      const uris = realmClients.map(rc => rc.client['jwksUri']);
+      const uris = realmClients.map(rc => rc.client.jwksUri);
       const uniqueUris = new Set(uris);
       expect(uniqueUris.size).toBe(3);
     });
@@ -104,7 +104,7 @@ describe('Multi-Tenant Integration Tests', () => {
       const jwksUri = `${keycloakUrl}/realms/tenant-a/protocol/openid-connect/certs`;
       const issuer = `${keycloakUrl}/realms/tenant-a`;
       
-      const jwksClient = new JWKSClientService(jwksUri, 300000);
+      const jwksClient = new JWKSClientService(jwksUri, 300_000);
       const validator = new JWTValidatorService(jwksClient, issuer);
       
       // Create token with wrong issuer
@@ -207,7 +207,7 @@ describe('Multi-Tenant Integration Tests', () => {
         const jwksUri = `${keycloakUrl}/realms/${realm.name}/protocol/openid-connect/certs`;
         const issuer = `${keycloakUrl}/realms/${realm.name}`;
         
-        const jwksClient = new JWKSClientService(jwksUri, 300000);
+        const jwksClient = new JWKSClientService(jwksUri, 300_000);
         const validator = new JWTValidatorService(jwksClient, issuer);
         const extractor = new UserContextExtractorService();
         const auditor = new AuthenticationAuditorService();
@@ -217,9 +217,9 @@ describe('Multi-Tenant Integration Tests', () => {
           realm: realm.name,
           clientId: realm.clientId,
           jwksUri,
-          cacheTimeout: 300000,
+          cacheTimeout: 300_000,
           rateLimitConfig: {
-            windowMs: 60000,
+            windowMs: 60_000,
             maxRequests: 100
           }
         };
@@ -241,12 +241,12 @@ describe('Multi-Tenant Integration Tests', () => {
     it('should route requests to correct realm validator', async () => {
       // Create validators for different realms
       const validatorA = new JWTValidatorService(
-        new JWKSClientService(`${keycloakUrl}/realms/tenant-a/protocol/openid-connect/certs`, 300000),
+        new JWKSClientService(`${keycloakUrl}/realms/tenant-a/protocol/openid-connect/certs`, 300_000),
         `${keycloakUrl}/realms/tenant-a`
       );
       
       const validatorB = new JWTValidatorService(
-        new JWKSClientService(`${keycloakUrl}/realms/tenant-b/protocol/openid-connect/certs`, 300000),
+        new JWKSClientService(`${keycloakUrl}/realms/tenant-b/protocol/openid-connect/certs`, 300_000),
         `${keycloakUrl}/realms/tenant-b`
       );
       
@@ -284,7 +284,7 @@ describe('Multi-Tenant Integration Tests', () => {
   describe('Cross-Realm Security', () => {
     it('should prevent token reuse across realms', async () => {
       const validatorA = new JWTValidatorService(
-        new JWKSClientService(`${keycloakUrl}/realms/tenant-a/protocol/openid-connect/certs`, 300000),
+        new JWKSClientService(`${keycloakUrl}/realms/tenant-a/protocol/openid-connect/certs`, 300_000),
         `${keycloakUrl}/realms/tenant-a`
       );
       
@@ -314,22 +314,22 @@ describe('Multi-Tenant Integration Tests', () => {
     it('should isolate realm-specific JWKS caches', async () => {
       const clientA = new JWKSClientService(
         `${keycloakUrl}/realms/tenant-a/protocol/openid-connect/certs`,
-        300000
+        300_000
       );
       
       const clientB = new JWKSClientService(
         `${keycloakUrl}/realms/tenant-b/protocol/openid-connect/certs`,
-        300000
+        300_000
       );
       
       // Each client should have independent cache
       expect(clientA).not.toBe(clientB);
-      expect(clientA['jwksUri']).not.toBe(clientB['jwksUri']);
+      expect(clientA.jwksUri).not.toBe(clientB.jwksUri);
     });
 
     it('should handle realm-specific audience validation', async () => {
       const validator = new JWTValidatorService(
-        new JWKSClientService(`${keycloakUrl}/realms/tenant-a/protocol/openid-connect/certs`, 300000),
+        new JWKSClientService(`${keycloakUrl}/realms/tenant-a/protocol/openid-connect/certs`, 300_000),
         `${keycloakUrl}/realms/tenant-a`,
         { audience: 'app-a' }
       );
@@ -365,7 +365,7 @@ describe('Multi-Tenant Integration Tests', () => {
         jwksUri: `${keycloakUrl}/realms/${realm.name}/protocol/openid-connect/certs`,
         issuer: `${keycloakUrl}/realms/${realm.name}`,
         clientId: realm.clientId,
-        cacheTimeout: 300000
+        cacheTimeout: 300_000
       }));
       
       expect(realmConfigs).toHaveLength(3);
@@ -383,12 +383,15 @@ describe('Multi-Tenant Integration Tests', () => {
         if (!config.name || typeof config.name !== 'string') {
           throw new Error('Realm name is required');
         }
+
         if (!config.jwksUri || typeof config.jwksUri !== 'string') {
           throw new Error('JWKS URI is required');
         }
+
         if (!config.issuer || typeof config.issuer !== 'string') {
           throw new Error('Issuer is required');
         }
+
         return true;
       };
       

@@ -72,7 +72,7 @@ export class ClientCredentialsService {
     }
 
     // Acquire new token using client credentials flow
-    return await this.acquireNewToken(credentials);
+    return this.acquireNewToken(credentials);
   }
 
   /**

@@ -78,7 +78,7 @@ describe('AuthenticationMiddleware - Property Tests', () => {
       clientId: 'test-client',
       cacheTimeout: 3600,
       rateLimitConfig: {
-        windowMs: 60000,
+        windowMs: 60_000,
         maxRequests: 100
       }
     };
@@ -223,7 +223,7 @@ describe('AuthenticationMiddleware - Property Tests', () => {
               
               return true; // All assertions passed
             } catch (error) {
-              console.error('Assertion failed for token:', requestProps.invalidToken.substring(0, 50));
+              console.error('Assertion failed for token:', requestProps.invalidToken.slice(0, 50));
               console.error('Error:', error);
               return false; // Assertion failed
             }

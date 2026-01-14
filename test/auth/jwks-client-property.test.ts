@@ -5,16 +5,16 @@ import { JWKSClientService } from '../../src/auth/jwks-client.js';
 import { JWKS } from '../../src/auth/types.js';
 
 describe('JWKSClientService - Property Tests', () => {
-  let originalFetch: typeof global.fetch;
+  let originalFetch: typeof globalThis.fetch;
 
   beforeEach(() => {
     // Save original fetch before each test
-    originalFetch = global.fetch;
+    originalFetch = globalThis.fetch;
   });
 
   afterEach(() => {
     // Restore original fetch after each test
-    global.fetch = originalFetch;
+    globalThis.fetch = originalFetch;
     vi.restoreAllMocks();
   });
 
@@ -30,7 +30,7 @@ describe('JWKSClientService - Property Tests', () => {
       await fc.assert(
         fc.asyncProperty(
           // Generate random cache timeout (1 second to 10 minutes)
-          fc.integer({ min: 1000, max: 600000 }),
+          fc.integer({ min: 1000, max: 600_000 }),
           async (cacheTimeout) => {
             // Arrange - Create mock JWKS response with a simple structure
             const mockJWKS: JWKS = {
@@ -48,7 +48,7 @@ describe('JWKSClientService - Property Tests', () => {
             let fetchCallCount = 0;
             
             // Mock fetch to succeed first, then fail
-            global.fetch = vi.fn(async () => {
+            globalThis.fetch = vi.fn(async () => {
               fetchCallCount++;
               if (fetchCallCount === 1) {
                 // First call succeeds
@@ -58,14 +58,15 @@ describe('JWKSClientService - Property Tests', () => {
                   status: 200,
                   statusText: 'OK'
                 } as Response;
-              } else {
+              }
+ 
                 // Subsequent calls fail (endpoint unavailable)
                 return {
                   ok: false,
                   status: 503,
                   statusText: 'Service Unavailable'
                 } as Response;
-              }
+              
             }) as any;
 
             const client = new JWKSClientService('http://test.example.com/jwks', cacheTimeout);
@@ -93,10 +94,10 @@ describe('JWKSClientService - Property Tests', () => {
       await fc.assert(
         fc.asyncProperty(
           // Generate random cache timeout
-          fc.integer({ min: 1000, max: 600000 }),
+          fc.integer({ min: 1000, max: 600_000 }),
           async (cacheTimeout) => {
             // Arrange - Mock fetch to always fail
-            global.fetch = vi.fn(async () => ({
+            globalThis.fetch = vi.fn(async () => ({
               ok: false,
               status: 503,
               statusText: 'Service Unavailable'
@@ -127,7 +128,7 @@ describe('JWKSClientService - Property Tests', () => {
       await fc.assert(
         fc.asyncProperty(
           // Generate cache timeout (5 seconds to 10 minutes)
-          fc.integer({ min: 5000, max: 600000 }),
+          fc.integer({ min: 5000, max: 600_000 }),
           async (cacheTimeout) => {
             // Arrange
             const mockJWKS: JWKS = {
@@ -144,7 +145,7 @@ describe('JWKSClientService - Property Tests', () => {
             
             let fetchCallCount = 0;
             
-            global.fetch = vi.fn(async () => {
+            globalThis.fetch = vi.fn(async () => {
               fetchCallCount++;
               return {
                 ok: true,
@@ -176,7 +177,7 @@ describe('JWKSClientService - Property Tests', () => {
       await fc.assert(
         fc.asyncProperty(
           // Generate random cache timeout
-          fc.integer({ min: 1000, max: 600000 }),
+          fc.integer({ min: 1000, max: 600_000 }),
           async (cacheTimeout) => {
             // Arrange
             const mockJWKS: JWKS = {
@@ -194,7 +195,7 @@ describe('JWKSClientService - Property Tests', () => {
             let fetchCallCount = 0;
             
             // Mock fetch to succeed first, then throw network error
-            global.fetch = vi.fn(async () => {
+            globalThis.fetch = vi.fn(async () => {
               fetchCallCount++;
               if (fetchCallCount === 1) {
                 return {
@@ -203,9 +204,10 @@ describe('JWKSClientService - Property Tests', () => {
                   status: 200,
                   statusText: 'OK'
                 } as Response;
-              } else {
-                throw new Error('Network error: ECONNREFUSED');
               }
+ 
+                throw new Error('Network error: ECONNREFUSED');
+              
             }) as any;
 
             const client = new JWKSClientService('http://test.example.com/jwks', cacheTimeout);

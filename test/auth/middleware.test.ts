@@ -45,7 +45,7 @@ describe('AuthenticationMiddleware', () => {
       keycloakUrl: 'https://keycloak.example.com',
       realm: 'test-realm',
       clientId: 'test-client',
-      cacheTimeout: 300000,
+      cacheTimeout: 300_000,
       rateLimitConfig: {
         windowMs: 15 * 60 * 1000,
         maxRequests: 10,
@@ -176,7 +176,7 @@ describe('AuthenticationMiddleware', () => {
         realm: 'test',
         isServiceAccount: false,
         tokenId: 'token123',
-        expiresAt: new Date(Date.now() + 3600000)
+        expiresAt: new Date(Date.now() + 3_600_000)
       };
 
       mockReq.headers!.authorization = validToken;
@@ -248,7 +248,7 @@ describe('AuthenticationMiddleware', () => {
     it('should update configuration', () => {
       // Arrange
       const newConfig: Partial<AuthConfig> = {
-        cacheTimeout: 600000
+        cacheTimeout: 600_000
       };
 
       // Act

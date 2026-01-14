@@ -38,8 +38,7 @@ export class AuthenticationMiddlewareService implements AuthenticationMiddleware
   private config: AuthConfig;
   private rateLimiter: AuthenticationRateLimiter | undefined;
   private errorHandler: AuthenticationErrorHandler;
-  
-  // Track authentication patterns for suspicious activity detection
+// Track authentication patterns for suspicious activity detection
   private failureTracker: Map<string, { count: number; lastFailure: Date; patterns: string[] }> = new Map();
   private readonly SUSPICIOUS_FAILURE_THRESHOLD = 5;
   private readonly SUSPICIOUS_PATTERN_WINDOW_MS = 5 * 60 * 1000; // 5 minutes
@@ -67,6 +66,7 @@ export class AuthenticationMiddlewareService implements AuthenticationMiddleware
     if (!this.rateLimiter) {
       throw new Error('Rate limiter not configured. Please provide a rate limiter instance.');
     }
+
     return this.rateLimiter.getMiddleware();
   }
 
@@ -382,7 +382,7 @@ export class AuthenticationMiddlewareService implements AuthenticationMiddleware
         type: 'MULTIPLE_ERROR_TYPES',
         severity: 'MEDIUM',
         details: {
-          error_types: Array.from(uniqueErrorTypes),
+          error_types: [...uniqueErrorTypes],
           total_patterns: tracker.patterns.length,
           description: 'Multiple different authentication error types suggest probing'
         }
@@ -408,7 +408,7 @@ export class AuthenticationMiddlewareService implements AuthenticationMiddleware
         type: 'ENDPOINT_SCANNING',
         severity: 'HIGH',
         details: {
-          endpoints: Array.from(uniqueEndpoints),
+          endpoints: [...uniqueEndpoints],
           description: 'Rapid access to multiple endpoints suggests scanning'
         }
       });

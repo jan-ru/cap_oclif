@@ -211,8 +211,8 @@ describe('JWTValidatorService', () => {
       const jwtPayload = {
         sub: 'user-123',
         iss: 'https://keycloak.example.com/realms/test',
-        exp: 1234567890,
-        iat: 1234567800,
+        exp: 1_234_567_890,
+        iat: 1_234_567_800,
         preferred_username: 'testuser',
         email: 'test@example.com',
         realm_access: { roles: ['user'] },
@@ -228,8 +228,8 @@ describe('JWTValidatorService', () => {
       expect(result.realm_access.roles).toEqual(['user']);
       expect(result.resource_access?.['test-client']?.roles).toEqual(['read']);
       expect(result.iss).toBe('https://keycloak.example.com/realms/test');
-      expect(result.exp).toBe(1234567890);
-      expect(result.iat).toBe(1234567800);
+      expect(result.exp).toBe(1_234_567_890);
+      expect(result.iat).toBe(1_234_567_800);
       expect(result.jti).toBe('token-123');
     });
 
@@ -237,8 +237,8 @@ describe('JWTValidatorService', () => {
       const minimalPayload = {
         sub: 'user-123',
         iss: 'https://keycloak.example.com/realms/test',
-        exp: 1234567890,
-        iat: 1234567800
+        exp: 1_234_567_890,
+        iat: 1_234_567_800
       };
 
       const result = (jwtValidator as any).convertToJWTPayload(minimalPayload);

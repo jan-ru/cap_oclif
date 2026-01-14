@@ -41,7 +41,8 @@ describe('Multi-Realm Support - Property Tests', () => {
                 uniqueRealms.set(realm.name, realm);
               }
             }
-            return Array.from(uniqueRealms.values()).map(realm => ({
+
+            return [...uniqueRealms.values()].map(realm => ({
               ...realm,
               issuer: `${realm.url}/realms/${realm.name}`
             }));
@@ -100,7 +101,8 @@ describe('Multi-Realm Support - Property Tests', () => {
                 uniqueRealms.set(realm.name, realm);
               }
             }
-            return Array.from(uniqueRealms.values()).map(realm => ({
+
+            return [...uniqueRealms.values()].map(realm => ({
               ...realm,
               issuer: `${realm.url}/realms/${realm.name}`
             }));
@@ -156,7 +158,8 @@ describe('Multi-Realm Support - Property Tests', () => {
                 uniqueRealms.set(realm.name, realm);
               }
             }
-            return Array.from(uniqueRealms.values()).map(realm => ({
+
+            return [...uniqueRealms.values()].map(realm => ({
               ...realm,
               issuer: `${realm.url}/realms/${realm.name}`
             }));
@@ -246,7 +249,8 @@ describe('Multi-Realm Support - Property Tests', () => {
                 uniqueRealms.set(realm.name, realm);
               }
             }
-            return Array.from(uniqueRealms.values()).map(realm => ({
+
+            return [...uniqueRealms.values()].map(realm => ({
               ...realm,
               issuer: `${realm.url}/realms/${realm.name}`
             }));
@@ -265,6 +269,7 @@ describe('Multi-Realm Support - Property Tests', () => {
             if (baseRealm.clientId) {
               process.env.KEYCLOAK_CLIENT_ID = baseRealm.clientId;
             }
+
             if (baseRealm.clientSecret) {
               process.env.KEYCLOAK_CLIENT_SECRET = baseRealm.clientSecret;
             }
@@ -318,7 +323,8 @@ describe('Multi-Realm Support - Property Tests', () => {
                 uniqueRealms.set(realm.name, realm);
               }
             }
-            return Array.from(uniqueRealms.values()).map(realm => ({
+
+            return [...uniqueRealms.values()].map(realm => ({
               ...realm,
               issuer: `${realm.url}/realms/${realm.name}`
             }));
@@ -378,7 +384,8 @@ describe('Multi-Realm Support - Property Tests', () => {
                 uniqueRealms.set(realm.name, realm);
               }
             }
-            return Array.from(uniqueRealms.values()).map(realm => ({
+
+            return [...uniqueRealms.values()].map(realm => ({
               ...realm,
               issuer: `${realm.url}/realms/${realm.name}`
             }));
@@ -394,14 +401,14 @@ describe('Multi-Realm Support - Property Tests', () => {
             process.env.JWT_ISSUER = baseRealm.issuer;
             
             // Set up additional realms via individual environment variables
-            realms.forEach((realm, index) => {
+            for (const [index, realm] of realms.entries()) {
               if (index > 0) { // Skip first realm as it's the base
                 const realmIndex = index;
                 process.env[`REALM_${realmIndex}_NAME`] = realm.name;
                 process.env[`REALM_${realmIndex}_URL`] = realm.url;
                 process.env[`REALM_${realmIndex}_ISSUER`] = realm.issuer;
               }
-            });
+            }
 
             // Act
             const config = AuthConfigLoader.loadConfig();
@@ -461,9 +468,9 @@ describe('Multi-Realm Support - Property Tests', () => {
             expect(userContext.realm).toBe(tokenRealm.name);
             
             // Verify it doesn't match other realms
-            for (let i = 0; i < realms.length; i++) {
+            for (const [i, realm] of realms.entries()) {
               if (i !== actualIndex) {
-                expect(userContext.realm).not.toBe(realms[i]!.name);
+                expect(userContext.realm).not.toBe(realm!.name);
               }
             }
           }
@@ -535,7 +542,8 @@ describe('Multi-Realm Support - Property Tests', () => {
                 uniqueRealms.set(realm.name, realm);
               }
             }
-            return Array.from(uniqueRealms.values()).map(realm => ({
+
+            return [...uniqueRealms.values()].map(realm => ({
               ...realm,
               issuer: `${realm.url}/realms/${realm.name}`
             }));

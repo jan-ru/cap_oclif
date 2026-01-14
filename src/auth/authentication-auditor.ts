@@ -1,4 +1,4 @@
-import { AuthenticationAuditor, AuthEvent, SecurityAlert } from './types.js';
+import { AuthenticationAuditor, AuthEvent, SecurityAlert, AuditEvent } from './types.js';
 import { logger } from '../cli.js';
 
 /**
@@ -23,23 +23,28 @@ export class AuthenticationAuditorService implements AuthenticationAuditor {
   logAuthSuccess(context: AuthEvent): void {
     if (!this.auditEnabled) return;
 
-    const auditLog: any = {
+    const auditLog: AuditEvent = {
       event_type: 'AUTH_SUCCESS',
       correlation_id: context.correlationId,
-      timestamp: context.timestamp.toISOString(),
+      timestamp: this.safeToISOString(context.timestamp),
       user_id: context.userId,
       username: context.username,
       source_ip: context.sourceIp,
       user_agent: context.userAgent,
-      endpoint: context.endpoint,
-      method: context.method,
-      success: context.success,
-      message: 'Authentication successful'
+      resource: context.endpoint,
+      action: context.method,
+      result: context.success ? 'success' : 'failure',
+      metadata: {
+        message: 'Authentication successful'
+      }
     };
 
     // Include token claims if configured to do so
-    if (this.includeTokenClaims && (context as any).tokenClaims) {
-      auditLog.token_claims = (context as any).tokenClaims;
+    if (this.includeTokenClaims && 'tokenClaims' in context) {
+      auditLog.metadata = {
+        ...auditLog.metadata,
+        token_claims: (context as AuthEvent & { tokenClaims: unknown }).tokenClaims
+      };
     }
 
     // Log structured JSON for analysis
@@ -56,20 +61,22 @@ export class AuthenticationAuditorService implements AuthenticationAuditor {
   logAuthFailure(context: AuthEvent): void {
     if (!this.auditEnabled) return;
 
-    const auditLog = {
+    const auditLog: AuditEvent = {
       event_type: 'AUTH_FAILURE',
       correlation_id: context.correlationId,
-      timestamp: context.timestamp.toISOString(),
+      timestamp: this.safeToISOString(context.timestamp),
       user_id: context.userId || 'unknown',
-      username: context.username || 'unknown',
       source_ip: context.sourceIp,
       user_agent: context.userAgent,
-      endpoint: context.endpoint,
-      method: context.method,
-      success: context.success,
+      resource: context.endpoint,
+      action: context.method,
+      result: 'failure',
       error_code: context.errorCode,
       error_message: context.errorMessage,
-      message: 'Authentication failed'
+      metadata: {
+        username: context.username || 'unknown',
+        message: 'Authentication failed'
+      }
     };
 
     // Log structured JSON for analysis
@@ -86,18 +93,20 @@ export class AuthenticationAuditorService implements AuthenticationAuditor {
   logTokenExpiration(context: AuthEvent): void {
     if (!this.auditEnabled) return;
 
-    const auditLog = {
+    const auditLog: AuditEvent = {
       event_type: 'TOKEN_EXPIRED',
       correlation_id: context.correlationId,
-      timestamp: context.timestamp.toISOString(),
+      timestamp: this.safeToISOString(context.timestamp),
       user_id: context.userId,
-      username: context.username,
       source_ip: context.sourceIp,
       user_agent: context.userAgent,
-      endpoint: context.endpoint,
-      method: context.method,
-      success: false,
-      message: 'JWT token expired during session'
+      resource: context.endpoint,
+      action: context.method,
+      result: 'failure',
+      metadata: {
+        username: context.username,
+        message: 'JWT token expired during session'
+      }
     };
 
     // Log structured JSON for analysis
@@ -114,14 +123,18 @@ export class AuthenticationAuditorService implements AuthenticationAuditor {
   logSecurityAlert(context: SecurityAlert): void {
     if (!this.auditEnabled) return;
 
-    const securityLog = {
+    const securityLog: AuditEvent = {
       event_type: 'SECURITY_ALERT',
-      alert_type: context.type,
-      severity: context.severity,
-      timestamp: context.timestamp.toISOString(),
+      correlation_id: `alert_${Date.now()}`,
+      timestamp: this.safeToISOString(context.timestamp),
       source_ip: context.sourceIp,
-      details: context.details,
-      message: this.getSecurityAlertMessage(context.type)
+      result: 'failure',
+      metadata: {
+        alert_type: context.type,
+        severity: context.severity,
+        details: context.details,
+        message: this.getSecurityAlertMessage(context.type)
+      }
     };
 
     // Log structured JSON for analysis
@@ -141,22 +154,40 @@ export class AuthenticationAuditorService implements AuthenticationAuditor {
    * Log authentication events with correlation IDs for request tracing
    * Requirements: 5.4, 5.5
    */
-  logAuthEvent(eventType: string, context: Partial<AuthEvent>, additionalData?: Record<string, any>): void {
+  logAuthEvent(eventType: string, context: Partial<AuthEvent>, additionalData?: Record<string, unknown>): void {
     if (!this.auditEnabled) return;
 
-    const baseLog = {
+    const baseLog: AuditEvent = {
       event_type: eventType,
       correlation_id: context.correlationId || 'unknown',
-      timestamp: (context.timestamp || new Date()).toISOString(),
+      timestamp: this.safeToISOString(context.timestamp || new Date()),
       source_ip: context.sourceIp || 'unknown',
       user_agent: context.userAgent || 'unknown',
-      endpoint: context.endpoint || 'unknown',
-      method: context.method || 'unknown',
-      ...additionalData
+      resource: context.endpoint || 'unknown',
+      action: context.method || 'unknown',
+      result: context.success ? 'success' : 'failure',
+      metadata: additionalData
     };
 
     // Log structured JSON format for analysis
     logger.info(`Auth Event: ${eventType}`, JSON.stringify(baseLog));
+  }
+
+  /**
+   * Safely convert a Date to ISO string, handling invalid dates
+   */
+  private safeToISOString(date: Date): string {
+    try {
+      // Check if date is valid
+      if (Number.isNaN(date.getTime())) {
+        // Return current timestamp for invalid dates
+        return new Date().toISOString();
+      }
+      return date.toISOString();
+    } catch {
+      // Fallback to current timestamp if any error occurs
+      return new Date().toISOString();
+    }
   }
 
   /**
@@ -187,6 +218,7 @@ export class AuthenticationAuditorService implements AuthenticationAuditor {
    * Enable or disable audit logging
    */
   setAuditEnabled(enabled: boolean): void {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (this as any).auditEnabled = enabled;
     logger.info(`Audit logging ${enabled ? 'enabled' : 'disabled'}`);
   }

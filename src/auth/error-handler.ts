@@ -62,8 +62,7 @@ export interface AuthErrorDetails {
  */
 export class AuthenticationErrorHandler {
   private auditor: AuthenticationAuditor;
-  
-  // Error message mappings - generic messages for clients
+// Error message mappings - generic messages for clients
   private readonly CLIENT_ERROR_MESSAGES: Record<AuthErrorType, string> = {
     [AuthErrorType.MISSING_TOKEN]: 'Authorization header with Bearer token is required',
     [AuthErrorType.INVALID_TOKEN]: 'The provided token is invalid',
@@ -78,8 +77,7 @@ export class AuthenticationErrorHandler {
     [AuthErrorType.AUTHENTICATION_ERROR]: 'Authentication failed',
     [AuthErrorType.CONFIGURATION_ERROR]: 'Authentication service configuration error'
   };
-
-  // HTTP status codes for different error types
+// HTTP status codes for different error types
   private readonly HTTP_STATUS_CODES: Record<AuthErrorType, number> = {
     [AuthErrorType.MISSING_TOKEN]: 401,
     [AuthErrorType.INVALID_TOKEN]: 401,
@@ -271,6 +269,7 @@ export class AuthenticationErrorHandler {
     if (errorDetails.userId) {
       authEvent.userId = errorDetails.userId;
     }
+
     if (errorDetails.username) {
       authEvent.username = errorDetails.username;
     }

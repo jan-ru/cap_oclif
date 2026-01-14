@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { JWKSClientService } from '../../src/auth/jwks-client.js';
 import { JWTValidatorService } from '../../src/auth/jwt-validator.js';
 import jwt from 'jsonwebtoken';
-import crypto from 'crypto';
+import crypto from 'node:crypto';
 
 /**
  * Integration Tests for Keycloak Connectivity
@@ -20,7 +20,7 @@ describe('Keycloak Connectivity Integration Tests', () => {
   let jwtValidator: JWTValidatorService;
 
   beforeAll(() => {
-    jwksClient = new JWKSClientService(jwksUri, 300000);
+    jwksClient = new JWKSClientService(jwksUri, 300_000);
     jwtValidator = new JWTValidatorService(jwksClient, issuer, {
       algorithms: ['RS256'],
       clockTolerance: 30
@@ -72,7 +72,7 @@ describe('Keycloak Connectivity Integration Tests', () => {
 
     it('should handle JWKS endpoint unavailability with cached fallback', async () => {
       // Create client with invalid endpoint
-      const invalidJwksClient = new JWKSClientService('http://invalid-endpoint:9999/jwks', 300000);
+      const invalidJwksClient = new JWKSClientService('http://invalid-endpoint:9999/jwks', 300_000);
       
       try {
         await invalidJwksClient.fetchJWKS();
@@ -89,7 +89,7 @@ describe('Keycloak Connectivity Integration Tests', () => {
         const jwks = await jwksClient.fetchJWKS();
         
         if (jwks.keys.length > 0) {
-          const kid = jwks.keys[0]!.kid;
+          const {kid} = (jwks.keys[0]!);
           const signingKey = await jwksClient.getSigningKey(kid);
           
           expect(signingKey).toBeDefined();
@@ -234,7 +234,7 @@ describe('Keycloak Connectivity Integration Tests', () => {
 
   describe('Error Handling Integration', () => {
     it('should handle network errors gracefully', async () => {
-      const invalidJwksClient = new JWKSClientService('http://invalid-host:9999/jwks', 300000);
+      const invalidJwksClient = new JWKSClientService('http://invalid-host:9999/jwks', 300_000);
       
       try {
         await invalidJwksClient.fetchJWKS();

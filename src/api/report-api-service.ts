@@ -52,13 +52,7 @@ export class ReportApiService {
         field: 'specification',
         message: 'Report specification is required',
       });
-    } else if (typeof req.specification !== 'object') {
-      errors.push({
-        field: 'specification',
-        message: 'Report specification must be an object',
-        value: req.specification,
-      });
-    } else {
+    } else if (typeof req.specification === 'object') {
       // Validate required specification fields
       const spec = req.specification;
       
@@ -91,6 +85,12 @@ export class ReportApiService {
           value: spec.period,
         });
       }
+    } else {
+      errors.push({
+        field: 'specification',
+        message: 'Report specification must be an object',
+        value: req.specification,
+      });
     }
 
     // Validate output format if provided
@@ -289,12 +289,12 @@ export class ReportApiService {
     // Implement role-based access control - only admins can see all jobs
     if (userContext && !this.hasRole(userContext, 'admin') && !this.hasRole(userContext, 'report-admin')) {
       // Non-admin users can only see their own jobs
-      return Array.from(this.jobs.values())
+      return [...this.jobs.values()]
         .filter(job => job.userContext?.userId === userContext.userId)
         .map(job => this.mapJobToResponse(job));
     }
 
-    return Array.from(this.jobs.values()).map(job => this.mapJobToResponse(job));
+    return [...this.jobs.values()].map(job => this.mapJobToResponse(job));
   }
 
   /**

@@ -143,9 +143,9 @@ describe('AuthenticationMiddleware - Valid Token Acceptance Property Tests', () 
                 iat,
                 iss: 'https://keycloak.example.com/realms/test',
                 jti: `jti-${tokenData.userId}-${iat}`,
-                // eslint-disable-next-line camelcase
+                 
                 preferred_username: tokenData.username,
-                // eslint-disable-next-line camelcase
+                 
                 realm_access: {
                   roles: tokenData.roles
                 },
@@ -159,7 +159,7 @@ describe('AuthenticationMiddleware - Valid Token Acceptance Property Tests', () 
               
               // Add optional client roles
               if (tokenData.clientRoles) {
-                // eslint-disable-next-line camelcase
+                 
                 payload.resource_access = {};
                 for (const [clientId, roles] of Object.entries(tokenData.clientRoles)) {
                   payload.resource_access[clientId] = { roles };

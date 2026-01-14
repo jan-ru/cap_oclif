@@ -40,8 +40,8 @@ describe('UserContextExtractorService - Property Tests', () => {
                 })
               ).filter(dict => {
                 // Filter out dangerous prototype pollution keys
-                const dangerousKeys = ['__proto__', 'constructor', 'prototype'];
-                return !Object.keys(dict).some(key => dangerousKeys.includes(key));
+                const dangerousKeys = new Set(['__proto__', 'constructor', 'prototype']);
+                return !Object.keys(dict).some(key => dangerousKeys.has(key));
               }),
               { nil: undefined }
             ),
@@ -52,7 +52,7 @@ describe('UserContextExtractorService - Property Tests', () => {
               'https://keycloak.local/realms/test-realm'
             ),
             aud: fc.constantFrom('my-client', 'api-service', 'web-app'),
-            exp: fc.integer({ min: Math.floor(Date.now() / 1000), max: Math.floor(Date.now() / 1000) + 86400 }),
+            exp: fc.integer({ min: Math.floor(Date.now() / 1000), max: Math.floor(Date.now() / 1000) + 86_400 }),
             iat: fc.integer({ min: Math.floor(Date.now() / 1000) - 3600, max: Math.floor(Date.now() / 1000) }),
             jti: fc.uuid()
           }),
@@ -133,7 +133,7 @@ describe('UserContextExtractorService - Property Tests', () => {
               'https://auth.company.com/realms/prod'
             ),
             aud: fc.string({ maxLength: 20, minLength: 3 }),
-            exp: fc.integer({ min: Math.floor(Date.now() / 1000), max: Math.floor(Date.now() / 1000) + 86400 }),
+            exp: fc.integer({ min: Math.floor(Date.now() / 1000), max: Math.floor(Date.now() / 1000) + 86_400 }),
             iat: fc.integer({ min: Math.floor(Date.now() / 1000) - 3600, max: Math.floor(Date.now() / 1000) }),
             jti: fc.uuid()
           }),
@@ -172,7 +172,7 @@ describe('UserContextExtractorService - Property Tests', () => {
               'https://auth.company.com/realms/prod'
             ),
             aud: fc.string({ maxLength: 20, minLength: 3 }),
-            exp: fc.integer({ min: Math.floor(Date.now() / 1000), max: Math.floor(Date.now() / 1000) + 86400 }),
+            exp: fc.integer({ min: Math.floor(Date.now() / 1000), max: Math.floor(Date.now() / 1000) + 86_400 }),
             iat: fc.integer({ min: Math.floor(Date.now() / 1000) - 3600, max: Math.floor(Date.now() / 1000) }),
             jti: fc.uuid()
           }),
@@ -206,15 +206,15 @@ describe('UserContextExtractorService - Property Tests', () => {
               { minKeys: 1, maxKeys: 4 }
             ).filter(dict => {
               // Filter out dangerous prototype pollution keys
-              const dangerousKeys = ['__proto__', 'constructor', 'prototype'];
-              return !Object.keys(dict).some(key => dangerousKeys.includes(key));
+              const dangerousKeys = new Set(['__proto__', 'constructor', 'prototype']);
+              return !Object.keys(dict).some(key => dangerousKeys.has(key));
             }),
             iss: fc.constantFrom(
               'https://keycloak.example.com/realms/test',
               'https://auth.company.com/realms/prod'
             ),
             aud: fc.string({ maxLength: 20, minLength: 3 }),
-            exp: fc.integer({ min: Math.floor(Date.now() / 1000), max: Math.floor(Date.now() / 1000) + 86400 }),
+            exp: fc.integer({ min: Math.floor(Date.now() / 1000), max: Math.floor(Date.now() / 1000) + 86_400 }),
             iat: fc.integer({ min: Math.floor(Date.now() / 1000) - 3600, max: Math.floor(Date.now() / 1000) }),
             jti: fc.uuid()
           }),
@@ -246,7 +246,7 @@ describe('UserContextExtractorService - Property Tests', () => {
               roles: fc.array(fc.string({ maxLength: 20, minLength: 3 }), { minLength: 0, maxLength: 3 })
             }),
             aud: fc.string({ maxLength: 20, minLength: 3 }),
-            exp: fc.integer({ min: Math.floor(Date.now() / 1000), max: Math.floor(Date.now() / 1000) + 86400 }),
+            exp: fc.integer({ min: Math.floor(Date.now() / 1000), max: Math.floor(Date.now() / 1000) + 86_400 }),
             iat: fc.integer({ min: Math.floor(Date.now() / 1000) - 3600, max: Math.floor(Date.now() / 1000) }),
             jti: fc.uuid()
           }),
@@ -286,15 +286,15 @@ describe('UserContextExtractorService - Property Tests', () => {
               { minKeys: 1, maxKeys: 3 }
             ).filter(dict => {
               // Filter out dangerous prototype pollution keys
-              const dangerousKeys = ['__proto__', 'constructor', 'prototype'];
-              return !Object.keys(dict).some(key => dangerousKeys.includes(key));
+              const dangerousKeys = new Set(['__proto__', 'constructor', 'prototype']);
+              return !Object.keys(dict).some(key => dangerousKeys.has(key));
             }),
             iss: fc.constantFrom(
               'https://keycloak.example.com/realms/production',
               'https://auth.company.com/realms/staging'
             ),
             aud: fc.string({ maxLength: 20, minLength: 3 }),
-            exp: fc.integer({ min: Math.floor(Date.now() / 1000), max: Math.floor(Date.now() / 1000) + 86400 }),
+            exp: fc.integer({ min: Math.floor(Date.now() / 1000), max: Math.floor(Date.now() / 1000) + 86_400 }),
             iat: fc.integer({ min: Math.floor(Date.now() / 1000) - 3600, max: Math.floor(Date.now() / 1000) }),
             jti: fc.uuid()
           }),

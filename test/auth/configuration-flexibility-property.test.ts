@@ -96,7 +96,7 @@ describe('AuthConfigLoader - Property Tests', () => {
       fc.assert(
         fc.property(
           // Generate random cache timeout values (1 second to 24 hours)
-          fc.integer({ min: 1000, max: 86400000 }),
+          fc.integer({ min: 1000, max: 86_400_000 }),
           fc.integer({ min: 1, max: 100 }),
           fc.integer({ min: 1, max: 60 }),
           (cacheTimeout, rateLimit, requestsPerMinute) => {
@@ -160,7 +160,7 @@ describe('AuthConfigLoader - Property Tests', () => {
       fc.assert(
         fc.property(
           // Generate random security parameters
-          fc.integer({ min: 60000, max: 3600000 }), // 1 minute to 1 hour
+          fc.integer({ min: 60_000, max: 3_600_000 }), // 1 minute to 1 hour
           fc.integer({ min: 10, max: 1000 }),
           fc.boolean(),
           fc.option(
@@ -255,6 +255,7 @@ describe('AuthConfigLoader - Property Tests', () => {
             } else {
               delete process.env.KEYCLOAK_CLIENT_ID;
             }
+
             if (clientSecret) {
               process.env.KEYCLOAK_CLIENT_SECRET = clientSecret;
             } else {
@@ -352,7 +353,7 @@ describe('AuthConfigLoader - Property Tests', () => {
           // Generate random configuration values
           fc.webUrl({ validSchemes: ['https'] }),
           fc.stringMatching(/^[a-z][a-z0-9-]{0,20}$/),
-          fc.integer({ min: 1000, max: 86400000 }),
+          fc.integer({ min: 1000, max: 86_400_000 }),
           (keycloakUrl, realm, cacheTimeout) => {
             // Clear cache before each iteration
             (AuthConfigLoader as any).cachedConfig = null;

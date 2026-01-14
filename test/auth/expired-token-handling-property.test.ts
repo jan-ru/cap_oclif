@@ -2,7 +2,7 @@ import fc from 'fast-check';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import crypto from 'crypto';
+import crypto from 'node:crypto';
 
 import { AuthenticationMiddlewareService } from '../../src/auth/middleware.js';
 import { JWTValidatorService } from '../../src/auth/jwt-validator.js';
@@ -93,7 +93,7 @@ describe('AuthenticationMiddleware - Expired Token Property Tests', () => {
       clientId: 'test-client',
       cacheTimeout: 3600,
       rateLimitConfig: {
-        windowMs: 60000,
+        windowMs: 60_000,
         maxRequests: 100
       }
     };
@@ -119,7 +119,7 @@ describe('AuthenticationMiddleware - Expired Token Property Tests', () => {
             // Generate expired tokens with various expiration times in the past
             expiredToken: fc.record({
               // Generate expiration times from 31 seconds (beyond clock tolerance) to 1 year in the past
-              secondsExpired: fc.integer({ min: 31, max: 31536000 }), // 31 seconds to 1 year
+              secondsExpired: fc.integer({ min: 31, max: 31_536_000 }), // 31 seconds to 1 year
               userId: fc.string({ minLength: 5, maxLength: 20 }),
               username: fc.string({ minLength: 3, maxLength: 20 }),
               email: fc.option(fc.emailAddress()),
@@ -139,8 +139,8 @@ describe('AuthenticationMiddleware - Expired Token Property Tests', () => {
                 },
                 iss: 'https://keycloak.example.com/realms/test',
                 aud: 'test-client',
-                exp: exp, // Expired timestamp
-                iat: iat,
+                exp, // Expired timestamp
+                iat,
                 jti: `jti-${tokenData.userId}-${exp}`
               };
               
@@ -151,7 +151,7 @@ describe('AuthenticationMiddleware - Expired Token Property Tests', () => {
               });
               
               return {
-                token: token,
+                token,
                 expiredBy: tokenData.secondsExpired,
                 userId: tokenData.userId
               };

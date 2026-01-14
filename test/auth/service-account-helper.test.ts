@@ -27,12 +27,12 @@ describe('ServiceAccountHelper - Automated Workflow Authentication', () => {
         clockTolerance: 30
       },
       jwks: {
-        cacheTimeout: 3600000,
+        cacheTimeout: 3_600_000,
         rateLimit: 10,
         requestsPerMinute: 5
       },
       security: {
-        rateLimitWindowMs: 900000,
+        rateLimitWindowMs: 900_000,
         rateLimitMaxRequests: 100,
         requireHttps: true
       },
@@ -107,7 +107,7 @@ describe('ServiceAccountHelper - Automated Workflow Authentication', () => {
         realm: 'test-realm',
         isServiceAccount: true,
         tokenId: 'token-id',
-        expiresAt: new Date(Date.now() + 3600000)
+        expiresAt: new Date(Date.now() + 3_600_000)
       };
 
       vi.mocked(mockClientCredentialsService.authenticateServiceAccount).mockResolvedValue(mockToken);
@@ -163,7 +163,7 @@ describe('ServiceAccountHelper - Automated Workflow Authentication', () => {
         realm: 'test-realm',
         isServiceAccount: false, // Not a service account
         tokenId: 'token-id',
-        expiresAt: new Date(Date.now() + 3600000)
+        expiresAt: new Date(Date.now() + 3_600_000)
       };
 
       vi.mocked(mockClientCredentialsService.authenticateServiceAccount).mockResolvedValue(mockToken);
@@ -230,7 +230,7 @@ describe('ServiceAccountHelper - Automated Workflow Authentication', () => {
         realm: 'test-realm',
         isServiceAccount: true,
         tokenId: 'token-id',
-        expiresAt: new Date(Date.now() + 3600000)
+        expiresAt: new Date(Date.now() + 3_600_000)
       };
 
       vi.mocked(mockClientCredentialsService.authenticateServiceAccount).mockResolvedValue(mockToken);
@@ -314,7 +314,7 @@ describe('ServiceAccountHelper - Automated Workflow Authentication', () => {
         realm: 'test-realm',
         isServiceAccount: true,
         tokenId: 'token-id',
-        expiresAt: new Date(Date.now() + 3600000)
+        expiresAt: new Date(Date.now() + 3_600_000)
       };
 
       vi.mocked(mockClientCredentialsService.authenticateServiceAccount).mockResolvedValue(mockToken);
@@ -389,7 +389,7 @@ describe('ServiceAccountHelper - Automated Workflow Authentication', () => {
         hasToken: true,
         expiresAt: new Date(Date.now() + 1000),
         canRefresh: true,
-        refreshExpiresAt: new Date(Date.now() + 3600000)
+        refreshExpiresAt: new Date(Date.now() + 3_600_000)
       });
 
       const mockToken: ClientCredentialsToken = {
@@ -429,7 +429,7 @@ describe('ServiceAccountHelper - Automated Workflow Authentication', () => {
     it('should check if service account has valid token', () => {
       vi.mocked(mockClientCredentialsService.getTokenInfo).mockReturnValue({
         hasToken: true,
-        expiresAt: new Date(Date.now() + 3600000),
+        expiresAt: new Date(Date.now() + 3_600_000),
         canRefresh: false
       });
 
@@ -450,7 +450,7 @@ describe('ServiceAccountHelper - Automated Workflow Authentication', () => {
     });
 
     it('should get token expiration information', () => {
-      const expirationDate = new Date(Date.now() + 3600000);
+      const expirationDate = new Date(Date.now() + 3_600_000);
       
       vi.mocked(mockClientCredentialsService.getTokenInfo).mockReturnValue({
         hasToken: true,

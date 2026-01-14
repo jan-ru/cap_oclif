@@ -1,6 +1,24 @@
 import { Request, Response, NextFunction } from 'express';
 
 // Configuration interfaces
+export interface AppConfig {
+  keycloak?: {
+    serverUrl: string;
+    realm: string;
+    clientId: string;
+    clientSecret?: string;
+  };
+  server?: {
+    port: number;
+    host: string;
+  };
+  logging?: {
+    level: string;
+    format: string;
+  };
+  [key: string]: unknown;
+}
+
 export interface AuthConfig {
   keycloakUrl: string;
   realm: string;
@@ -67,7 +85,41 @@ export interface KeycloakAuthConfig {
   };
 }
 
+// OAuth2 token interfaces
+export interface OAuth2TokenRequest {
+  grant_type: 'client_credentials' | 'refresh_token' | 'authorization_code';
+  client_id: string;
+  client_secret: string;
+  refresh_token?: string;
+  code?: string;
+  redirect_uri?: string;
+  scope?: string;
+}
+
+export interface OAuth2TokenResponse {
+  access_token: string;
+  token_type: string;
+  expires_in: number;
+  refresh_token?: string;
+  scope?: string;
+}
+
 // JWT and JWKS interfaces
+export interface JWTTokenClaims {
+  sub: string;          // Subject (user ID)
+  iss: string;          // Issuer
+  aud: string | string[];  // Audience (can be string or array)
+  exp: number;          // Expiration time
+  iat: number;          // Issued at time
+  azp?: string;         // Authorized party (client ID)
+  scope?: string;       // OAuth scopes
+  realm_access?: {
+    roles: string[];
+  };
+  resource_access?: Record<string, { roles: string[] }>;
+  [key: string]: unknown;  // Additional claims (using unknown instead of any)
+}
+
 export interface JWTPayload {
   sub: string;          // Subject (user ID)
   preferred_username: string;
@@ -92,7 +144,7 @@ export interface JWTPayload {
   typ?: string;              // Token type
   
   // Additional claims that might be present
-  [key: string]: any;        // Allow for additional claims
+  [key: string]: unknown;    // Changed from any to unknown
 }
 
 export interface JWKS {
@@ -134,6 +186,22 @@ export interface AuthenticatedRequest extends Request {
 }
 
 // Audit logging interfaces
+export interface AuditEvent {
+  event_type: string;
+  correlation_id: string;
+  timestamp: string;
+  user_id?: string | undefined;
+  username?: string | undefined;
+  source_ip?: string | undefined;
+  user_agent?: string | undefined;
+  resource?: string | undefined;
+  action?: string | undefined;
+  result?: 'success' | 'failure' | undefined;
+  error_code?: string | undefined;
+  error_message?: string | undefined;
+  metadata?: Record<string, unknown> | undefined;
+}
+
 export interface AuthEvent {
   correlationId: string;
   timestamp: Date;
@@ -151,12 +219,20 @@ export interface AuthEvent {
 export interface SecurityAlert {
   type: 'RATE_LIMIT_EXCEEDED' | 'SUSPICIOUS_PATTERN' | 'INVALID_TOKEN_STRUCTURE';
   severity: 'LOW' | 'MEDIUM' | 'HIGH';
-  details: Record<string, any>;
+  details: Record<string, unknown>;  // Changed from any to unknown
   sourceIp: string;
   timestamp: Date;
 }
 
 // Error response interface
+export interface ErrorResponse {
+  error: string;
+  error_description?: string;
+  error_code?: string;
+  status: number;
+  timestamp: string;
+}
+
 export interface AuthErrorResponse {
   error: string;
   error_description?: string;

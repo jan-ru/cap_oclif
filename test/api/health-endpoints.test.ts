@@ -4,13 +4,12 @@ import { ApiServer } from '../../src/api/server.js';
 
 // Mock fetch globally for health checks
 const mockFetch = vi.fn();
-global.fetch = mockFetch;
+globalThis.fetch = mockFetch;
 
 // Mock the ReportService to avoid actual OData calls
-vi.mock('../../src/services/report-service.js', () => {
-  return {
-    ReportService: vi.fn().mockImplementation(() => ({
-      generateReport: vi.fn().mockResolvedValue({
+vi.mock('../../src/services/report-service.js', () => ({
+    ReportService: class MockReportService {
+      generateReport = vi.fn().mockResolvedValue({
         data: [],
         metadata: {
           entity: 'TestEntity',
@@ -20,10 +19,9 @@ vi.mock('../../src/services/report-service.js', () => {
           executionTime: 100,
           generatedAt: new Date(),
         },
-      }),
-    })),
-  };
-});
+      });
+    },
+  }));
 
 describe('Health Check Endpoints', () => {
   let apiServer: ApiServer;
@@ -231,13 +229,12 @@ describe('Health Check Endpoints', () => {
         .get('/api')
         .expect(200);
 
-      expect(response.body.endpoints).toMatchObject({
-        health: 'GET /health',
-        healthLive: 'GET /health/live',
-        healthReady: 'GET /health/ready',
-        reports: 'POST /api/reports',
-        reportStatus: 'GET /api/reports/:id',
-      });
+      // Check that health endpoints are present (authentication note may vary)
+      expect(response.body.endpoints.health).toContain('GET /health');
+      expect(response.body.endpoints.healthLive).toContain('GET /health/live');
+      expect(response.body.endpoints.healthReady).toContain('GET /health/ready');
+      expect(response.body.endpoints.reports).toContain('POST /api/reports');
+      expect(response.body.endpoints.reportStatus).toContain('GET /api/reports/:id');
     });
   });
 

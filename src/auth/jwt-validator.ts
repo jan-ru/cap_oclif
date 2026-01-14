@@ -125,8 +125,7 @@ export class JWTValidatorService implements JWTValidator {
     }
 
     // Each part should be valid base64url
-    for (let i = 0; i < parts.length; i++) {
-      const part = parts[i];
+    for (const [i, part] of parts.entries()) {
       if (!part || part.length === 0) {
         this.logSecurityAlert('INVALID_TOKEN_STRUCTURE', `JWT part ${i + 1} is empty`, sourceIp);
         throw new Error(`Invalid token structure: part ${i + 1} is empty`);
@@ -165,6 +164,7 @@ export class JWTValidatorService implements JWTValidator {
         this.logSecurityAlert('INVALID_TOKEN_STRUCTURE', 'Malformed JSON in JWT header or payload', sourceIp);
         throw new Error('Invalid token structure: malformed JSON in header or payload');
       }
+
       // Re-throw our custom errors as-is
       throw error;
     }
@@ -192,11 +192,9 @@ export class JWTValidatorService implements JWTValidator {
     }
 
     // Validate realm_access structure if present
-    if (payload.realm_access && typeof payload.realm_access === 'object') {
-      if (!Array.isArray(payload.realm_access.roles)) {
+    if (payload.realm_access && typeof payload.realm_access === 'object' && !Array.isArray(payload.realm_access.roles)) {
         throw new Error('Invalid payload: realm_access.roles must be an array');
       }
-    }
 
     // Validate resource_access structure if present
     if (payload.resource_access && typeof payload.resource_access === 'object') {

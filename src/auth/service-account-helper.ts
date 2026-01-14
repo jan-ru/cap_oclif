@@ -46,6 +46,7 @@ export class ServiceAccountHelper {
       // For now, we'll assume it's provided or create a minimal one
       throw new Error('JWTValidator must be provided to ServiceAccountHelper');
     }
+
     this.jwtValidator = jwtValidator;
     
     this.userContextExtractor = userContextExtractor || new UserContextExtractorService();
@@ -116,7 +117,7 @@ export class ServiceAccountHelper {
         authenticatedReq.authTimestamp = new Date();
 
         next();
-      } catch (error) {
+      } catch {
         res.status(500).json({
           error: 'internal_server_error',
           error_description: 'Internal authentication error',

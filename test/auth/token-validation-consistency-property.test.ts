@@ -74,7 +74,7 @@ describe('AuthenticationMiddleware - Property Tests', () => {
     auditor = new AuthenticationAuditorService(true, false);
     
     mockConfig = {
-      cacheTimeout: 3_600,
+      cacheTimeout: 3600,
       clientId: 'test-client',
       keycloakUrl: 'https://keycloak.example.com',
       rateLimitConfig: {
@@ -99,7 +99,7 @@ describe('AuthenticationMiddleware - Property Tests', () => {
           fc.record({
             authHeader: fc.option(
               fc.oneof(
-                fc.constant(undefined),  // No auth header
+                fc.constant(),  // No auth header
                 fc.constant(''),  // Empty auth header
                 fc.constant('Bearer'),  // Just "Bearer" without token
                 fc.constant('Bearer '),  // "Bearer " with just space

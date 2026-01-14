@@ -63,7 +63,7 @@ describe('JWTValidator - Property Tests', () => {
         audience: 'test-client',
         clockTolerance: 30,
         algorithms: ['RS256'],
-        auditor: auditor
+        auditor
       }
     );
   });
@@ -257,7 +257,7 @@ describe('JWTValidator - Property Tests', () => {
             // Act - attempt to validate the malformed token
             try {
               await freshValidator.validateToken(token, sourceIp);
-            } catch (error) {
+            } catch {
               // Expected to throw
             }
             

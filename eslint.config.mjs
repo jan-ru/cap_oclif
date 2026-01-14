@@ -39,6 +39,23 @@ export default [
       'perfectionist/sort-object-types': 'off',
       'perfectionist/sort-objects': 'off',
       'perfectionist/sort-union-types': 'off',
+      // Disable switch case sorting - not needed for this codebase
+      'perfectionist/sort-switch-case': 'off',
+      
+      // Allow snake_case in object properties and destructuring for API contracts
+      // OAuth2 tokens, JWT claims, and audit events use snake_case per external API standards
+      // Internal variables and functions still require camelCase
+      'camelcase': ['error', {
+        properties: 'never',           // Allow snake_case in object properties
+        ignoreDestructuring: true,     // Allow destructuring snake_case properties
+        allow: ['^[A-Z_]+$']           // Allow CONSTANT_CASE
+      }],
+      
+      // Recognize fetch as stable in Node.js 20+ (no longer experimental)
+      // fetch is a built-in global in Node 20.0.0 and above
+      'n/no-unsupported-features/node-builtins': ['error', {
+        ignores: ['fetch']
+      }],
     }
   }
 ]

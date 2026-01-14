@@ -270,6 +270,7 @@ describe('AuthConfigLoader', () => {
         watcherCalled = true;
         watcherConfig = config;
       };
+
       AuthConfigLoader.onConfigChange(watcher);
 
       // Change environment and reload

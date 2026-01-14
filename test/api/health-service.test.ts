@@ -3,7 +3,7 @@ import { HealthService, HealthStatus, type HealthCheckConfig } from '../../src/a
 
 // Mock fetch globally
 const mockFetch = vi.fn();
-global.fetch = mockFetch;
+globalThis.fetch = mockFetch;
 
 describe('HealthService', () => {
   let healthService: HealthService;
@@ -350,14 +350,14 @@ describe('HealthService', () => {
   describe('configuration management', () => {
     it('should update configuration', () => {
       const newConfig: Partial<HealthCheckConfig> = {
-        timeout: 10000,
+        timeout: 10_000,
         odataServiceUrl: 'http://new-url:4004',
       };
 
       healthService.updateConfig(newConfig);
       const currentConfig = healthService.getConfig();
 
-      expect(currentConfig.timeout).toBe(10000);
+      expect(currentConfig.timeout).toBe(10_000);
       expect(currentConfig.odataServiceUrl).toBe('http://new-url:4004');
     });
 

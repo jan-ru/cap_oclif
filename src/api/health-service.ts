@@ -168,14 +168,15 @@ export class HealthService {
           responseTime,
           lastChecked,
         };
-      } else {
+      }
+ 
         return {
           status: HealthStatus.Degraded,
           responseTime,
           error: `HTTP ${response.status}: ${response.statusText}`,
           lastChecked,
         };
-      }
+      
     } catch (error) {
       const responseTime = Date.now() - startTime;
       
@@ -235,17 +236,20 @@ export class HealthService {
           responseTime,
           lastChecked,
         };
-      } else if (response.status === 404) {
+      }
+
+ if (response.status === 404) {
         // Try alternative endpoint - realm info
         return await this.checkKeycloakRealmInfo(startTime, lastChecked);
-      } else {
+      }
+ 
         return {
           status: HealthStatus.Degraded,
           responseTime,
           error: `HTTP ${response.status}: ${response.statusText}`,
           lastChecked,
         };
-      }
+      
     } catch (error) {
       const responseTime = Date.now() - startTime;
       
@@ -293,14 +297,15 @@ export class HealthService {
           responseTime,
           lastChecked,
         };
-      } else {
+      }
+ 
         return {
           status: HealthStatus.Degraded,
           responseTime,
           error: `HTTP ${response.status}: ${response.statusText}`,
           lastChecked,
         };
-      }
+      
     } catch (error) {
       const responseTime = Date.now() - startTime;
       return {
@@ -327,11 +332,14 @@ export class HealthService {
 
     if (hasUnhealthy) {
       return HealthStatus.Unhealthy;
-    } else if (hasDegraded) {
-      return HealthStatus.Degraded;
-    } else {
-      return HealthStatus.Healthy;
     }
+
+ if (hasDegraded) {
+      return HealthStatus.Degraded;
+    }
+ 
+      return HealthStatus.Healthy;
+    
   }
 
   /**

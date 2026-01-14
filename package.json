@@ -1,7 +1,7 @@
 {
   "name": "financial-reports-cli",
   "description": "A new CLI generated with oclif",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "author": "jan-ru",
   "bin": {
     "financial-reports-cli": "./bin/run.js"

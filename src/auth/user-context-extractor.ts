@@ -126,7 +126,7 @@ export class UserContextExtractorService implements UserContextExtractor {
       
       // Fallback: if we can't parse the realm from URL, return a default
       return 'unknown';
-    } catch (error) {
+    } catch {
       // If issuer is not a valid URL, return unknown
       return 'unknown';
     }

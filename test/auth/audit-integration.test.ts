@@ -57,9 +57,9 @@ describe('Audit Logging Integration', () => {
     const config: AuthConfig = {
       keycloakUrl: 'https://keycloak.example.com',
       realm: 'test',
-      cacheTimeout: 300000,
+      cacheTimeout: 300_000,
       rateLimitConfig: {
-        windowMs: 900000,
+        windowMs: 900_000,
         maxRequests: 10
       }
     };
@@ -114,7 +114,7 @@ describe('Audit Logging Integration', () => {
         realm: 'test',
         isServiceAccount: false,
         tokenId: 'token-123',
-        expiresAt: new Date(Date.now() + 3600000)
+        expiresAt: new Date(Date.now() + 3_600_000)
       };
 
       mockReq.headers!.authorization = 'Bearer valid-jwt-token';

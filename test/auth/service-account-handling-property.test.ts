@@ -54,7 +54,7 @@ describe('UserContextExtractorService - Service Account Property Tests', () => {
               'https://sso.domain.org/realms/development'
             ),
             aud: fc.constantFrom('api-service', 'backend-api', 'integration-service'),
-            exp: fc.integer({ min: Math.floor(Date.now() / 1000), max: Math.floor(Date.now() / 1000) + 86400 }),
+            exp: fc.integer({ min: Math.floor(Date.now() / 1000), max: Math.floor(Date.now() / 1000) + 86_400 }),
             iat: fc.integer({ min: Math.floor(Date.now() / 1000) - 3600, max: Math.floor(Date.now() / 1000) }),
             jti: fc.uuid()
           }),
@@ -113,7 +113,7 @@ describe('UserContextExtractorService - Service Account Property Tests', () => {
               'https://auth.company.com/realms/staging'
             ),
             aud: fc.constantFrom('api-service', 'backend-api'),
-            exp: fc.integer({ min: Math.floor(Date.now() / 1000), max: Math.floor(Date.now() / 1000) + 86400 }),
+            exp: fc.integer({ min: Math.floor(Date.now() / 1000), max: Math.floor(Date.now() / 1000) + 86_400 }),
             iat: fc.integer({ min: Math.floor(Date.now() / 1000) - 3600, max: Math.floor(Date.now() / 1000) }),
             jti: fc.uuid()
           }),
@@ -159,7 +159,7 @@ describe('UserContextExtractorService - Service Account Property Tests', () => {
               'https://auth.company.com/realms/staging'
             ),
             aud: fc.constantFrom('api-service', 'backend-api'),
-            exp: fc.integer({ min: Math.floor(Date.now() / 1000), max: Math.floor(Date.now() / 1000) + 86400 }),
+            exp: fc.integer({ min: Math.floor(Date.now() / 1000), max: Math.floor(Date.now() / 1000) + 86_400 }),
             iat: fc.integer({ min: Math.floor(Date.now() / 1000) - 3600, max: Math.floor(Date.now() / 1000) }),
             jti: fc.uuid()
           }),
@@ -211,7 +211,7 @@ describe('UserContextExtractorService - Service Account Property Tests', () => {
               'https://auth.company.com/realms/staging'
             ),
             aud: fc.constantFrom('web-app', 'mobile-app'),
-            exp: fc.integer({ min: Math.floor(Date.now() / 1000), max: Math.floor(Date.now() / 1000) + 86400 }),
+            exp: fc.integer({ min: Math.floor(Date.now() / 1000), max: Math.floor(Date.now() / 1000) + 86_400 }),
             iat: fc.integer({ min: Math.floor(Date.now() / 1000) - 3600, max: Math.floor(Date.now() / 1000) }),
             jti: fc.uuid()
           }),
@@ -270,7 +270,7 @@ describe('UserContextExtractorService - Service Account Property Tests', () => {
               'https://auth.company.com/realms/staging'
             ),
             aud: fc.constantFrom('api-service', 'backend-api'),
-            exp: fc.integer({ min: Math.floor(Date.now() / 1000), max: Math.floor(Date.now() / 1000) + 86400 }),
+            exp: fc.integer({ min: Math.floor(Date.now() / 1000), max: Math.floor(Date.now() / 1000) + 86_400 }),
             iat: fc.integer({ min: Math.floor(Date.now() / 1000) - 3600, max: Math.floor(Date.now() / 1000) }),
             jti: fc.uuid()
           }),
@@ -320,7 +320,7 @@ describe('UserContextExtractorService - Service Account Property Tests', () => {
               'https://auth.company.com/realms/prod'
             ),
             aud: fc.string({ minLength: 5, maxLength: 20 }),
-            exp: fc.integer({ min: Math.floor(Date.now() / 1000), max: Math.floor(Date.now() / 1000) + 86400 }),
+            exp: fc.integer({ min: Math.floor(Date.now() / 1000), max: Math.floor(Date.now() / 1000) + 86_400 }),
             iat: fc.integer({ min: Math.floor(Date.now() / 1000) - 3600, max: Math.floor(Date.now() / 1000) }),
             jti: fc.uuid()
           }),
@@ -367,7 +367,7 @@ describe('UserContextExtractorService - Service Account Property Tests', () => {
               'https://auth.company.com/realms/staging'
             ),
             aud: fc.constantFrom('api-service', 'backend-api'),
-            exp: fc.integer({ min: Math.floor(Date.now() / 1000), max: Math.floor(Date.now() / 1000) + 86400 }),
+            exp: fc.integer({ min: Math.floor(Date.now() / 1000), max: Math.floor(Date.now() / 1000) + 86_400 }),
             iat: fc.integer({ min: Math.floor(Date.now() / 1000) - 3600, max: Math.floor(Date.now() / 1000) }),
             jti: fc.uuid()
           }),

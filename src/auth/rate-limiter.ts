@@ -44,13 +44,12 @@ export class AuthenticationRateLimiter {
           // We'll determine this in the handler based on authentication result
           return false; // For now, count all requests
         }
+
         return false;
       },
 
       // Custom key generator to identify clients
-      keyGenerator: (req: Request): string => {
-        return this.getClientIdentifier(req);
-      },
+      keyGenerator: (req: Request): string => this.getClientIdentifier(req),
 
       // Custom handler for when rate limit is exceeded
       handler: (req: Request, res: Response, _next: NextFunction) => {

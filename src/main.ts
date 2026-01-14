@@ -28,6 +28,7 @@ function detectModeFromEnvironment(): AppMode {
   if (explicitMode === 'api' || explicitMode === 'server') {
     return AppMode.API;
   }
+
   if (explicitMode === 'cli') {
     return AppMode.CLI;
   }
@@ -144,15 +145,20 @@ export async function startApplication(userConfig?: Partial<AppConfig>): Promise
 
   // Start in the appropriate mode
   switch (config.mode) {
-    case AppMode.API:
+    case AppMode.API: {
       await startApiMode(config);
       break;
-    case AppMode.CLI:
+    }
+
+    case AppMode.CLI: {
       await startCliMode(config);
       break;
-    default:
+    }
+
+    default: {
       logger.error(`Unknown application mode: ${config.mode}`);
       process.exit(1);
+    }
   }
 }
 

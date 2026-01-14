@@ -4,11 +4,10 @@ import { ApiServer } from '../../src/api/server.js';
 import { ReportType } from '../../src/types/index.js';
 
 // Mock the entire ReportApiService instead of ReportService
-vi.mock('../../src/api/report-api-service.js', () => {
-  return {
-    ReportApiService: vi.fn().mockImplementation(() => ({
-      validateCreateReportRequest: vi.fn().mockReturnValue([]),
-      createReport: vi.fn().mockResolvedValue({
+vi.mock('../../src/api/report-api-service.js', () => ({
+    ReportApiService: class MockReportApiService {
+      validateCreateReportRequest = vi.fn().mockReturnValue([]);
+      createReport = vi.fn().mockResolvedValue({
         id: 'test-job-id',
         status: 'completed',
         result: {
@@ -19,7 +18,7 @@ vi.mock('../../src/api/report-api-service.js', () => {
             lineItems: [
               {
                 account: 'Assets',
-                amount: 100000,
+                amount: 100_000,
                 currency: 'USD',
               },
             ],
@@ -36,17 +35,16 @@ vi.mock('../../src/api/report-api-service.js', () => {
         createdAt: new Date().toISOString(),
         completedAt: new Date().toISOString(),
         executionTime: 100,
-      }),
-      getReportStatus: vi.fn().mockReturnValue({
+      });
+      getReportStatus = vi.fn().mockReturnValue({
         id: 'test-job-id',
         status: 'completed',
         createdAt: new Date().toISOString(),
         completedAt: new Date().toISOString(),
         executionTime: 100,
-      }),
-    })),
-  };
-});
+      });
+    },
+  }));
 
 describe('API Server Tests', () => {
   let server: ApiServer;

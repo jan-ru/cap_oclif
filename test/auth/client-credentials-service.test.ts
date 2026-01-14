@@ -4,7 +4,7 @@ import { KeycloakAuthConfig } from '../../src/auth/types.js';
 
 // Mock fetch globally
 const mockFetch = vi.fn();
-global.fetch = mockFetch as any;
+globalThis.fetch = mockFetch as any;
 
 describe('ClientCredentialsService - Service Account Token Handling', () => {
   let service: ClientCredentialsService;
@@ -26,12 +26,12 @@ describe('ClientCredentialsService - Service Account Token Handling', () => {
         clockTolerance: 30
       },
       jwks: {
-        cacheTimeout: 3600000,
+        cacheTimeout: 3_600_000,
         rateLimit: 10,
         requestsPerMinute: 5
       },
       security: {
-        rateLimitWindowMs: 900000,
+        rateLimitWindowMs: 900_000,
         rateLimitMaxRequests: 100,
         requireHttps: true
       },

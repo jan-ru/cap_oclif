@@ -207,14 +207,14 @@ export function demonstrateEnvironmentConfig(): void {
   try {
     const defaultCredentials = ClientCredentialsService.createCredentialsFromEnv();
     console.log('Default credentials loaded:', { clientId: defaultCredentials.clientId });
-  } catch (error) {
+  } catch {
     console.log('Default credentials not configured in environment');
   }
 
   try {
     const namedCredentials = ClientCredentialsService.createCredentialsFromEnv('REPORTS');
     console.log('Named credentials loaded:', { clientId: namedCredentials.clientId });
-  } catch (error) {
+  } catch {
     console.log('Named credentials not configured in environment');
   }
 }

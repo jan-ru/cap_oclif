@@ -1,5 +1,5 @@
 import { JWKSClient, JWKS, JWK } from './types.js';
-import crypto from 'crypto';
+import crypto from 'node:crypto';
 
 interface CachedJWKS {
   jwks: JWKS;
@@ -15,7 +15,7 @@ export class JWKSClientService implements JWKSClient {
   private cacheTimeout: number;
   private jwksUri: string;
 
-  constructor(jwksUri: string, cacheTimeout: number = 300000) { // Default 5 minutes
+  constructor(jwksUri: string, cacheTimeout: number = 300_000) { // Default 5 minutes
     this.jwksUri = jwksUri;
     this.cacheTimeout = cacheTimeout;
   }
@@ -70,6 +70,7 @@ export class JWKSClientService implements JWKSClient {
     if (this.cache && this.isCacheValid()) {
       return this.cache.jwks;
     }
+
     return null;
   }
 
@@ -81,11 +82,14 @@ export class JWKSClientService implements JWKSClient {
     try {
       if (jwk.kty === 'RSA') {
         return this.rsaJwkToPem(jwk);
-      } else if (jwk.kty === 'EC') {
-        return this.ecJwkToPem(jwk);
-      } else {
-        throw new Error(`Unsupported key type: ${jwk.kty}`);
       }
+
+ if (jwk.kty === 'EC') {
+        return this.ecJwkToPem(jwk);
+      }
+ 
+        throw new Error(`Unsupported key type: ${jwk.kty}`);
+      
     } catch (error) {
       throw new Error(`Failed to convert JWK to PEM: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
