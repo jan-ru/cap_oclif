@@ -1,6 +1,3 @@
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
-
 # Optional: Add conventional commit validation
 # Uncomment the line below if you want to enforce conventional commits
 # npx commitlint --edit $1
