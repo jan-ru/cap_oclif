@@ -1,6 +1,6 @@
 # Multi-stage build for Financial Reports CLI with Keycloak Authentication
 # Stage 1: Build
-FROM node:18-alpine AS builder
+FROM node:20.11.0-alpine AS builder
 
 # Install build dependencies
 RUN apk add --no-cache python3 make g++
@@ -21,7 +21,7 @@ COPY src ./src
 RUN npm run build
 
 # Stage 2: Production
-FROM node:18-alpine
+FROM node:20.11.0-alpine
 
 # Install runtime dependencies
 RUN apk add --no-cache \
