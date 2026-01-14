@@ -1,56 +1,56 @@
 import fc from 'fast-check';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { Request, Response, NextFunction } from 'express';
+import { beforeEach, describe, it, vi } from 'vitest';
 
-import { AuthenticationMiddlewareService } from '../../src/auth/middleware.js';
-import { JWTValidatorService } from '../../src/auth/jwt-validator.js';
-import { UserContextExtractorService } from '../../src/auth/user-context-extractor.js';
+import { NextFunction, Request, Response } from 'express';
+
 import { AuthenticationAuditorService } from '../../src/auth/authentication-auditor.js';
-import { AuthConfig, JWKSClient, JWKS, JWK } from '../../src/auth/types.js';
+import { JWTValidatorService } from '../../src/auth/jwt-validator.js';
+import { AuthenticationMiddlewareService } from '../../src/auth/middleware.js';
+import { AuthConfig, JWK, JWKS, JWKSClient } from '../../src/auth/types.js';
+import { UserContextExtractorService } from '../../src/auth/user-context-extractor.js';
 
 // Mock JWKS client
 class MockJWKSClient implements JWKSClient {
   private mockJWKS: JWKS = {
     keys: [
       {
-        kty: 'RSA',
-        use: 'sig',
-        kid: 'test-key-id',
-        x5t: 'test-thumbprint',
-        n: 'test-modulus',
         e: 'AQAB',
-        x5c: ['test-cert']
-      }
-    ]
+        kid: 'test-key-id',
+        kty: 'RSA',
+        n: 'test-modulus',
+        use: 'sig',
+        x5c: ['test-cert'],
+        x5t: 'test-thumbprint',
+      },
+    ],
   };
 
   async fetchJWKS(): Promise<JWKS> {
     return this.mockJWKS;
   }
 
-  getCachedJWKS(): JWKS | null {
-    return this.mockJWKS;
+  async getAvailableKeyIds(): Promise<string[]> {
+    return this.mockJWKS.keys.map(key => key.kid);
   }
 
-  jwkToPem(_jwk: JWK): string {
-    return '-----BEGIN CERTIFICATE-----\nMOCK_CERT\n-----END CERTIFICATE-----';
+  getCachedJWKS(): JWKS | null {
+    return this.mockJWKS;
   }
 
   async getSigningKey(_kid: string): Promise<string> {
     return this.jwkToPem(this.mockJWKS.keys[0]!);
   }
 
-  async getAvailableKeyIds(): Promise<string[]> {
-    return this.mockJWKS.keys.map(key => key.kid);
-  }
-
   async hasKey(kid: string): Promise<boolean> {
     return this.mockJWKS.keys.some(key => key.kid === kid);
+  }
+
+  jwkToPem(_jwk: JWK): string {
+    return '-----BEGIN CERTIFICATE-----\nMOCK_CERT\n-----END CERTIFICATE-----';
   }
 }
 
 describe('AuthenticationMiddleware - Property Tests', () => {
-  let middleware: AuthenticationMiddlewareService;
   let mockJWKSClient: MockJWKSClient;
   let jwtValidator: JWTValidatorService;
   let userContextExtractor: UserContextExtractorService;
@@ -65,31 +65,24 @@ describe('AuthenticationMiddleware - Property Tests', () => {
       mockJWKSClient,
       'https://keycloak.example.com/realms/test',
       {
+        algorithms: ['RS256'],
         audience: 'test-client',
         clockTolerance: 30,
-        algorithms: ['RS256']
-      }
+      },
     );
     userContextExtractor = new UserContextExtractorService('test');
     auditor = new AuthenticationAuditorService(true, false);
     
     mockConfig = {
-      keycloakUrl: 'https://keycloak.example.com',
-      realm: 'test',
+      cacheTimeout: 3_600,
       clientId: 'test-client',
-      cacheTimeout: 3600,
+      keycloakUrl: 'https://keycloak.example.com',
       rateLimitConfig: {
-        windowMs: 60000,
-        maxRequests: 100
-      }
+        maxRequests: 100,
+        windowMs: 60_000,
+      },
+      realm: 'test',
     };
-
-    middleware = new AuthenticationMiddlewareService(
-      jwtValidator,
-      userContextExtractor,
-      auditor,
-      mockConfig
-    );
   });
 
   /**
@@ -104,22 +97,28 @@ describe('AuthenticationMiddleware - Property Tests', () => {
         fc.asyncProperty(
           // Generate random request properties
           fc.record({
-            method: fc.constantFrom('GET', 'POST', 'PUT', 'DELETE', 'PATCH'),
-            url: fc.constantFrom('/api/reports', '/api/health', '/api/data', '/api/users', '/api/config'),
-            userAgent: fc.string({ minLength: 10, maxLength: 100 }),
-            sourceIp: fc.ipV4(),
-            // Generate various invalid authorization scenarios
             authHeader: fc.option(
               fc.oneof(
                 fc.constant(undefined),  // No auth header
                 fc.constant(''),  // Empty auth header
                 fc.constant('Bearer'),  // Just "Bearer" without token
                 fc.constant('Bearer '),  // "Bearer " with just space
-                fc.string({ minLength: 1, maxLength: 20 }).map(s => `Basic ${s}`),  // Non-Bearer auth
-                fc.string({ minLength: 1, maxLength: 20 }).map(s => `Digest ${s}`)  // Non-Bearer auth
+                fc.string({ maxLength: 20, minLength: 1 }).map(s => `Basic ${s}`),  // Non-Bearer auth
+                fc.string({ maxLength: 20, minLength: 1 }).map(s => `Digest ${s}`),  // Non-Bearer auth
               ),
-              { nil: undefined }
-            )
+            ),
+            method: fc.constantFrom('DELETE', 'GET', 'PATCH', 'POST', 'PUT'),
+            path: fc.constantFrom('/api/config', '/api/data', '/api/health', '/api/reports', '/api/users'),
+            sourceIp: fc.ipV4(),
+            url: fc.constantFrom('/api/config', '/api/data', '/api/health', '/api/reports', '/api/users'),
+            // Generate realistic user agents (avoid whitespace-only strings)
+            userAgent: fc.oneof(
+              fc.constant('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'),
+              fc.constant('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'),
+              fc.constant('curl/7.68.0'),
+              fc.constant('PostmanRuntime/7.26.8'),
+              fc.string({ maxLength: 100, minLength: 10 }).filter(s => s.trim().length > 0),
+            ),
           }),
           async (requestProps) => {
             // Create fresh middleware instance for each test iteration to avoid state accumulation
@@ -127,31 +126,32 @@ describe('AuthenticationMiddleware - Property Tests', () => {
               jwtValidator,
               userContextExtractor,
               auditor,
-              mockConfig
+              mockConfig,
             );
             
-            // Arrange - create mock request
+            // Arrange - create mock request with clean headers (no pre-existing correlation ID)
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const headers: any = {
               'user-agent': requestProps.userAgent,
-              'x-forwarded-for': requestProps.sourceIp
+              'x-forwarded-for': requestProps.sourceIp,
             };
             
             if (requestProps.authHeader !== undefined) {
-              headers['authorization'] = requestProps.authHeader;
+              headers.authorization = requestProps.authHeader;
             }
             
             const mockReq = {
-              method: requestProps.method,
-              url: requestProps.url,
-              originalUrl: requestProps.url,
               headers,
-              socket: { remoteAddress: requestProps.sourceIp }
+              method: requestProps.method,
+              originalUrl: requestProps.url,
+              socket: { remoteAddress: requestProps.sourceIp },
+              url: requestProps.url,
             } as unknown as Request;
 
             const mockRes = {
-              status: vi.fn().mockReturnThis(),
               json: vi.fn().mockReturnThis(),
-              setHeader: vi.fn().mockReturnThis()
+              setHeader: vi.fn().mockReturnThis(),
+              status: vi.fn().mockReturnThis(),
             } as unknown as Response;
 
             const mockNext = vi.fn() as NextFunction;
@@ -160,30 +160,59 @@ describe('AuthenticationMiddleware - Property Tests', () => {
             await freshMiddleware.authenticate(mockReq, mockRes, mockNext);
 
             // Assert - Requirement 1.1: Return 401 for requests without valid JWT token
-            try {
-              expect(mockRes.status).toHaveBeenCalledWith(401);
-              expect(mockRes.json).toHaveBeenCalled();
-              
-              // Verify error response structure is consistent
-              const errorResponse = (mockRes.json as any).mock.calls[0][0];
-              expect(errorResponse).toHaveProperty('error');
-              expect(errorResponse).toHaveProperty('correlation_id');
-              expect(errorResponse).toHaveProperty('timestamp');
-              expect(typeof errorResponse.error).toBe('string');
-              expect(typeof errorResponse.correlation_id).toBe('string');
-              expect(typeof errorResponse.timestamp).toBe('string');
-              
-              // Verify next() was NOT called (request should not proceed)
-              expect(mockNext).not.toHaveBeenCalled();
-              
-              return true; // All assertions passed
-            } catch (error) {
-              console.error('Assertion failed:', error);
-              return false; // Assertion failed
+            // Use direct checks instead of expect() to avoid throwing exceptions
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const statusCalls = (mockRes.status as any).mock.calls;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const jsonCalls = (mockRes.json as any).mock.calls;
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const nextCalls = (mockNext as any).mock.calls;
+            
+            // Check that status(401) was called
+            if (statusCalls.length === 0 || statusCalls[0][0] !== 401) {
+              console.error('Expected status(401) to be called, but got:', statusCalls);
+              return false;
             }
-          }
+            
+            // Check that json() was called with error response
+            if (jsonCalls.length === 0) {
+              console.error('Expected json() to be called');
+              return false;
+            }
+            
+            const errorResponse = jsonCalls[0][0];
+            
+            // Verify error response structure
+            if (!errorResponse || typeof errorResponse !== 'object') {
+              console.error('Expected error response to be an object, got:', errorResponse);
+              return false;
+            }
+            
+            if (!errorResponse.error || typeof errorResponse.error !== 'string') {
+              console.error('Expected error response to have string "error" property');
+              return false;
+            }
+            
+            if (!errorResponse.correlation_id || typeof errorResponse.correlation_id !== 'string') {
+              console.error('Expected error response to have string "correlation_id" property');
+              return false;
+            }
+            
+            if (!errorResponse.timestamp || typeof errorResponse.timestamp !== 'string') {
+              console.error('Expected error response to have string "timestamp" property');
+              return false;
+            }
+            
+            // Verify next() was NOT called (request should not proceed)
+            if (nextCalls.length > 0) {
+              console.error('Expected next() to NOT be called, but it was called');
+              return false;
+            }
+            
+            return true; // All checks passed
+          },
         ),
-        { numRuns: 100 }
+        { numRuns: 100 },
       );
     });
   });

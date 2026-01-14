@@ -512,6 +512,9 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 - **[Authentication Integration Status](docs/AUTHENTICATION_INTEGRATION_STATUS.md)**: Comprehensive status report of Keycloak JWT authentication integration
 - **[Service Account Authentication](docs/SERVICE_ACCOUNT_AUTHENTICATION.md)**: Guide for configuring and using service account authentication
+- **[Docker Deployment Guide](docs/DOCKER_DEPLOYMENT.md)**: Complete guide for deploying with Docker and Kubernetes
+- **[Coolify Deployment Guide](docs/COOLIFY_DEPLOYMENT.md)**: Step-by-step guide for deploying on Hetzner with Coolify
+- **[Development Guide](docs/DEVELOPMENT.md)**: Local development setup and guidelines
 
 ## Changelog
 

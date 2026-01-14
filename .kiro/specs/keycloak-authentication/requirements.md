@@ -22,10 +22,10 @@ This specification defines the requirements for integrating Keycloak JWT token-b
 
 #### Acceptance Criteria
 
-1. WHEN a request is made to a protected endpoint without a JWT token, THEN THE Authentication_Service SHALL return HTTP 401 Unauthorized
-2. WHEN a request is made with an invalid JWT token, THEN THE Authentication_Service SHALL return HTTP 401 Unauthorized with error details
-3. WHEN a request is made with an expired JWT token, THEN THE Authentication_Service SHALL return HTTP 401 Unauthorized with expiration information
-4. WHEN a request is made with a valid JWT token, THEN THE Authentication_Service SHALL allow the request to proceed
+1. WHEN a request is made to a protected endpoint without a JWT token THEN THE Authentication_Service SHALL return HTTP 401 Unauthorized
+2. WHEN a request is made with an invalid JWT token THEN THE Authentication_Service SHALL return HTTP 401 Unauthorized with error details
+3. WHEN a request is made with an expired JWT token THEN THE Authentication_Service SHALL return HTTP 401 Unauthorized with expiration information
+4. WHEN a request is made with a valid JWT token THEN THE Authentication_Service SHALL allow the request to proceed
 5. THE Authentication_Service SHALL validate JWT signatures using Keycloak's JWKS endpoint
 
 ### Requirement 2: User Identity Extraction
@@ -34,10 +34,10 @@ This specification defines the requirements for integrating Keycloak JWT token-b
 
 #### Acceptance Criteria
 
-1. WHEN a valid JWT token is processed, THEN THE Authentication_Service SHALL extract the user ID from the token claims
-2. WHEN a valid JWT token is processed, THEN THE Authentication_Service SHALL extract the username from the token claims
-3. WHEN a valid JWT token is processed, THEN THE Authentication_Service SHALL extract user roles from the token claims
-4. WHEN a valid JWT token is processed, THEN THE Authentication_Service SHALL extract the realm information from the token claims
+1. WHEN a valid JWT token is processed THEN THE Authentication_Service SHALL extract the user ID from the token claims
+2. WHEN a valid JWT token is processed THEN THE Authentication_Service SHALL extract the username from the token claims
+3. WHEN a valid JWT token is processed THEN THE Authentication_Service SHALL extract user roles from the token claims
+4. WHEN a valid JWT token is processed THEN THE Authentication_Service SHALL extract the realm information from the token claims
 5. THE Authentication_Service SHALL make user context available to downstream request handlers
 
 ### Requirement 3: Keycloak Integration
@@ -47,10 +47,10 @@ This specification defines the requirements for integrating Keycloak JWT token-b
 #### Acceptance Criteria
 
 1. THE Authentication_Service SHALL connect to Keycloak's JWKS endpoint to retrieve public keys
-2. WHEN Keycloak's JWKS endpoint is unavailable, THEN THE Authentication_Service SHALL cache previously retrieved keys and continue validation
+2. WHEN Keycloak's JWKS endpoint is unavailable THEN THE Authentication_Service SHALL cache previously retrieved keys and continue validation
 3. THE Authentication_Service SHALL support configurable Keycloak server URLs
 4. THE Authentication_Service SHALL support multiple Keycloak realms through configuration
-5. WHEN JWKS keys are rotated, THEN THE Authentication_Service SHALL automatically fetch updated keys
+5. WHEN JWKS keys are rotated THEN THE Authentication_Service SHALL automatically fetch updated keys
 
 ### Requirement 4: Service Account Authentication
 
@@ -59,9 +59,9 @@ This specification defines the requirements for integrating Keycloak JWT token-b
 #### Acceptance Criteria
 
 1. THE Authentication_Service SHALL accept JWT tokens issued for service accounts
-2. WHEN a service account token is processed, THEN THE Authentication_Service SHALL extract service account identity
+2. WHEN a service account token is processed THEN THE Authentication_Service SHALL extract service account identity
 3. THE Authentication_Service SHALL distinguish between user accounts and service accounts in logging
-4. WHEN a service account token expires, THEN THE Authentication_Service SHALL return appropriate error messages for automated retry logic
+4. WHEN a service account token expires THEN THE Authentication_Service SHALL return appropriate error messages for automated retry logic
 5. THE Authentication_Service SHALL support client credentials flow for service account authentication
 
 ### Requirement 5: Authentication Event Logging
@@ -70,9 +70,9 @@ This specification defines the requirements for integrating Keycloak JWT token-b
 
 #### Acceptance Criteria
 
-1. WHEN a successful authentication occurs, THEN THE Audit_Logger SHALL log the event with user identity and timestamp
-2. WHEN an authentication failure occurs, THEN THE Audit_Logger SHALL log the failure reason and source IP
-3. WHEN a JWT token expires during a session, THEN THE Audit_Logger SHALL log the expiration event
+1. WHEN a successful authentication occurs THEN THE Audit_Logger SHALL log the event with user identity and timestamp
+2. WHEN an authentication failure occurs THEN THE Audit_Logger SHALL log the failure reason and source IP
+3. WHEN a JWT token expires during a session THEN THE Audit_Logger SHALL log the expiration event
 4. THE Audit_Logger SHALL include request correlation IDs for tracing authentication events
 5. THE Audit_Logger SHALL log authentication events in structured JSON format for analysis
 
@@ -85,7 +85,7 @@ This specification defines the requirements for integrating Keycloak JWT token-b
 1. THE Authentication_Service SHALL support environment-based configuration for Keycloak URLs
 2. THE Authentication_Service SHALL support configurable JWT validation parameters (issuer, audience)
 3. THE Authentication_Service SHALL support configurable JWKS cache timeout settings
-4. WHEN configuration is invalid, THEN THE Authentication_Service SHALL fail startup with clear error messages
+4. WHEN configuration is invalid THEN THE Authentication_Service SHALL fail startup with clear error messages
 5. THE Authentication_Service SHALL support runtime configuration updates without service restart
 
 ### Requirement 7: Error Handling and Security
@@ -94,8 +94,8 @@ This specification defines the requirements for integrating Keycloak JWT token-b
 
 #### Acceptance Criteria
 
-1. WHEN authentication fails, THEN THE Authentication_Service SHALL return generic error messages that don't reveal system internals
+1. WHEN authentication fails THEN THE Authentication_Service SHALL return generic error messages that don't reveal system internals
 2. THE Authentication_Service SHALL implement rate limiting for authentication attempts
-3. WHEN suspicious authentication patterns are detected, THEN THE Authentication_Service SHALL log security alerts
+3. WHEN suspicious authentication patterns are detected THEN THE Authentication_Service SHALL log security alerts
 4. THE Authentication_Service SHALL validate JWT token structure before attempting signature verification
-5. WHEN JWT validation fails due to system errors, THEN THE Authentication_Service SHALL log detailed errors internally while returning generic errors to clients
+5. WHEN JWT validation fails due to system errors THEN THE Authentication_Service SHALL log detailed errors internally while returning generic errors to clients

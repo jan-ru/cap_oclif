@@ -123,5 +123,19 @@ test-auth-manual.js
 *-keycloak-test.json
 *-keycloak-test.yaml
 
-# Docker health check documentation (keep in repo)
-# docker-healthcheck.md
+# Docker volumes and data
+docker/volumes/
+postgres-data/
+keycloak-data/
+
+# Docker environment files
+docker/.env
+docker/.env.local
+
+# Coolify generated files
+.coolify/
+
+# Backup files
+backups/
+*.sql.gz
+*_backup_*.json
