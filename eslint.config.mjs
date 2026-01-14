@@ -24,5 +24,21 @@ export default [
         vi: 'readonly'
       }
     }
+  },
+  {
+    // Disable perfectionist sorting rules - they're too strict for this codebase
+    rules: {
+      'perfectionist/sort-array-includes': 'off',
+      'perfectionist/sort-classes': 'off',
+      'perfectionist/sort-enums': 'off',
+      'perfectionist/sort-exports': 'off',
+      'perfectionist/sort-imports': 'off',
+      'perfectionist/sort-interfaces': 'off',
+      'perfectionist/sort-named-exports': 'off',
+      'perfectionist/sort-named-imports': 'off',
+      'perfectionist/sort-object-types': 'off',
+      'perfectionist/sort-objects': 'off',
+      'perfectionist/sort-union-types': 'off',
+    }
   }
 ]
